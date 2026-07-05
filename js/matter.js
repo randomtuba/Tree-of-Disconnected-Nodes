@@ -44,6 +44,7 @@ addLayer("m", {
     powerGen(x) {
         let gen = Decimal.pow(2, player[this.layer].multiplier[x]).mul(player[this.layer].multiplier[x])
         gen = gen.mul(layers.m.particleEff("proton",1))
+        gen = gen.mul(layers.f.fluidEffect())
         return gen
     },
     multiplierCost(x) {
@@ -58,6 +59,7 @@ addLayer("m", {
                     let gen = Decimal.pow(2,((0.5 - player.m.slider[0]) * 4) ** 2).pow(layers.m.particleEff("gluon"))
                     if (hasMilestone("m",3) && player.m.slider[0] == 0.5) gen = Decimal.pow(16, layers.m.particleEff("gluon"))
                     gen = gen.div(layers.m.particleEff("electron",2))
+                    gen = gen.mul(layers.f.vaporEffect())
                     return gen
                 } else return new Decimal(0)
             break
@@ -67,20 +69,25 @@ addLayer("m", {
                     if (hasMilestone("m",3) && player.m.slider[0] == 0.5) gen = Decimal.pow(16, layers.m.particleEff("gluon"))
                     gen = gen.div(layers.m.particleEff("proton",2))
                     gen = gen.mul(layers.m.particleEff("tau",1))
+                    gen = gen.mul(layers.f.vaporEffect())
                     return gen
                 } else return new Decimal(0)
             break
             case "muon":
-                if (player.m.slider[1] < 0.5 && hasMilestone("m",1)) {
+                if ((player.m.slider[1] < 0.5 && hasMilestone("m",1)) || (hasMilestone("m",4) && player.m.slider[1] == 0)) {
                     let gen = Decimal.mul(162, 0.5 - player.m.slider[1]).pow(layers.m.particleEff("photon"))
+                    if (hasMilestone("m",4) && player.m.slider[1] == 0) gen = Decimal.pow(81, layers.m.particleEff("photon"))
                     gen = gen.div(layers.m.particleEff("tau",2))
+                    gen = gen.mul(layers.f.vaporEffect())
                     return gen
                 } else return new Decimal(0)
             break
             case "tau":
-                if (player.m.slider[1] > 0.5 && hasMilestone("m",1)) {
+                if ((player.m.slider[1] > 0.5 && hasMilestone("m",1)) || (hasMilestone("m",4) && player.m.slider[1] == 0)) {
                     let gen = Decimal.mul(162, player.m.slider[1] - 0.5).pow(layers.m.particleEff("photon"))
+                    if (hasMilestone("m",4) && player.m.slider[1] == 0) gen = Decimal.pow(81, layers.m.particleEff("photon"))
                     gen = gen.div(layers.m.particleEff("muon",2))
+                    gen = gen.mul(layers.f.vaporEffect())
                     return gen
                 } else return new Decimal(0)
             break
@@ -91,6 +98,7 @@ addLayer("m", {
                     if (trueSlider > 0.4 && trueSlider < 0.6) gen = new Decimal(50)
                     else if (trueSlider < 0.4) gen = Decimal.sub(50, 50 * (1 - (trueSlider / 0.4)))
                     else if (trueSlider > 0.6) gen = Decimal.sub(50, 50 * ((trueSlider - 0.6) / 0.4))
+                    gen = gen.mul(layers.f.vaporEffect())
                     return gen
                 } else return new Decimal(0)
             break
@@ -122,6 +130,16 @@ addLayer("m", {
                 return type.add(1).log10().add(1).ln().add(1)
             break
         }
+    },
+    automate() {
+      if (player.m.autoMults && hasMilestone("m",5)) {
+        if (player.m.points.gte(layers.m.multiplierCost(1))) player.m.multiplier[1] = player.m.points.mul(layers.m.particleEff("electron",1)).log(10).floor()
+        if (player.m.points.gte(layers.m.multiplierCost(2))) player.m.multiplier[2] = player.m.points.mul(layers.m.particleEff("electron",1)).log(100).floor()
+        if (player.m.points.gte(layers.m.multiplierCost(3))) player.m.multiplier[3] = player.m.points.mul(layers.m.particleEff("electron",1)).log(10000).floor()
+        if (player.m.points.gte(layers.m.multiplierCost(4))) player.m.multiplier[4] = player.m.points.mul(layers.m.particleEff("electron",1)).log(1e8).floor()
+        if (player.m.points.gte(layers.m.multiplierCost(5))) player.m.multiplier[5] = player.m.points.mul(layers.m.particleEff("electron",1)).log(1e16).floor()
+        if (player.m.points.gte(layers.m.multiplierCost(6))) player.m.multiplier[6] = player.m.points.mul(layers.m.particleEff("electron",1)).log(1e32).floor()
+      }
     },
     update(diff) {
         player[this.layer].points = player[this.layer].points.add(this.generation().mul(diff))
@@ -173,7 +191,7 @@ addLayer("m", {
         "blank",
         () => hasMilestone("m",1) ? ["bar","slider2"] : '',
         () => hasMilestone("m",1) ? ["clickables",[8]] : '',
-        () => hasMilestone("m",1) ? ["display-text", `Note: This slider naturally decays.`] : '',
+        () => hasMilestone("m",1) ? ["display-text", `This slider naturally decays.`] : '',
         "blank",
         () => hasMilestone("m",1) ? ["display-text", `<span style="color: #ffc95d">You have ${format(player.m.particles.muons)} muons, dividing the 2nd electron effect by /${format(layers.m.particleEff("muon",1))}<br>and dividing tau particle gain by /${format(layers.m.particleEff("muon",2))}.</span>`] : '',
         "blank",
@@ -181,7 +199,7 @@ addLayer("m", {
         "blank",
         () => hasMilestone("m",2) ? ["bar","slider3"] : '',
         () => hasMilestone("m",2) ? ["clickables",[9]] : '',
-        () => hasMilestone("m",2) ? ["display-text", `Note: Freezing this slider in the center will provide the max production.`] : '',
+        () => hasMilestone("m",2) ? ["display-text", `Freezing this slider in the center will provide the max production.`] : '',
         () => hasMilestone("m",2) ? ["display-text", `Freezing the 3rd slider also freezes the 2nd slider.`] : '',
         "blank",
         () => hasMilestone("m",2) ? ["display-text", `<span style="color: #c56fff">You have ${format(player.m.particles.gluons)} gluons, raising the base output of the 1st slider by ^${format(layers.m.particleEff("gluon"))}.</span>`] : '',
@@ -214,6 +232,21 @@ addLayer("m", {
             effectDescription: "You can produce protons and electrons when the 1st slider is centered.",
             done() { return player.m.points.gte(1e60) },
             unlocked() { return hasMilestone("m",2) },
+        },
+        4: {
+            requirementDescription() {return `${format(1e80)} matter`},
+            effectDescription: "You can produce muons and tau particles when the 2nd slider is empty.",
+            done() { return player.m.points.gte(1e80) },
+            unlocked() { return player.f.unlocked },
+        },
+        5: {
+            requirementDescription() {return `${format(1e120)} matter`},
+            effectDescription: "Autobuy Multiplier Multipliers without consuming matter.",
+            done() { return player.m.points.gte(1e120) },
+            unlocked() { return player.f.unlocked },
+            toggles: [
+                ["m","autoMults"],
+            ],
         },
     },
     clickables: {

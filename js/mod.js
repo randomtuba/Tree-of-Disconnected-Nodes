@@ -2,7 +2,7 @@ let modInfo = {
 	name: "Tree of Disconnected Nodes",
 	author: "randomtuba",
 	pointsName: "",
-	modFiles: ["tree.js", "side-layers.js", "matter.js"],
+	modFiles: ["tree.js", "side-layers.js", "matter.js", "fluid.js"],
 
 	discordName: "tuba's new place",
 	discordLink: "https://discord.gg/HhcavwM5rm",
@@ -12,13 +12,18 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "Act 1 Part 1",
-	name: "Matter",
+	num: "Act 1 Part 2",
+	name: "Fluid",
 }
 
 let changelog = `<h1>Changelog</h1><br>
 	<span style="font-size:11px;">If this game gets abandoned, don't forget me ok?</span><br><br>
-	<h3>Act 1 Part 1 (6/28/2026)</h3><br>
+	<h3>Act 1 Part 2: Fluid (7/4/2026)</h3><br>
+	<b>Endgame: 1.00e42 fluid</b><br>
+		- Added the Fluid node.<br>
+		- Added 2 achievements.<br>
+		- Added 2 matter milestones.<br><br>
+	<h3>Act 1 Part 1: Matter (6/28/2026)</h3><br>
 	<b>Endgame: 1.00e66 matter</b><br>
 		- Added the Matter node.<br>
 		- Added the Achievements menu.<br>
@@ -46,6 +51,8 @@ function getPointGen() {
 
 	let gain = new Decimal(0)
 	gain = gain.add(player.m.multiplier[1].add(player.m.multiplier[2]).add(player.m.multiplier[3]).add(player.m.multiplier[4]).add(player.m.multiplier[5]).add(player.m.multiplier[6]))
+	gain = gain.mul(player.f.singularities.sqrt().add(1))
+	gain = gain.mul(player.f.planckPoints.cbrt().add(1))
 	return gain
 }
 
@@ -55,12 +62,12 @@ function addedPlayerData() { return {
 
 // Display extra things at the top of the page
 var displayThings = [
-	() => `Current Endgame: ${format(1e66)} matter`,
+	() => `Current Endgame: ${format(1e42)} fluid`,
 ]
 
 // Determines when the game "ends"
 function isEndgame() {
-	return player.m.points.gte(new Decimal(1e66))
+	return player.f.points.gte(new Decimal(1e42))
 }
 
 
@@ -68,8 +75,13 @@ function isEndgame() {
 // Less important things beyond this point!
 
 // Style for the background, can be a function
+function backgroundColor() {
+	//if (!player.f.unlocked) return "#1e0a1d"
+	return "#0c161c"
+}
+
 var backgroundStyle = {
-	"background-color": "#1e0a1d",
+	"background-color": backgroundColor(),
 }
 
 // You can change this if you have things that can be messed up by long tick lengths
