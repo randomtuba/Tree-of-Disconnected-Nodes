@@ -81,54 +81,56 @@ addLayer("f", {
     },
     update(diff) {
         if (!player[this.layer].unlocked && player.m.points.gte(1e66)) player[this.layer].unlocked = true
-        if (!player.f.infinity[0]) {
-            // no fluid infinity
-            // fluid bar fills up in more than 1 tick:
-            if (layers.f.fillSpeed(1).mul(0.04).lt(1)) {
-                player.f.barProgress[0] += layers.f.fillSpeed(1).mul(0.04).toNumber()
-                player.f.fluidPerSecond = layers.f.generation().mul(layers.f.fillSpeed(1))
-                if (player.f.barProgress[0] >= 1) {
-                    player.f.barProgress[0] = 0
-                    player.f.points = player.f.points.add(layers.f.generation())
-                    player.f.barProgress[1] += layers.f.fillSpeed(2).toNumber()
+        if (player[this.layer].unlocked) {
+            if (!player.f.infinity[0]) {
+                // no fluid infinity
+                // fluid bar fills up in more than 1 tick:
+                if (layers.f.fillSpeed(1).mul(0.04).lt(1)) {
+                    player.f.barProgress[0] += layers.f.fillSpeed(1).mul(0.04).toNumber()
+                    player.f.fluidPerSecond = layers.f.generation().mul(layers.f.fillSpeed(1))
+                    if (player.f.barProgress[0] >= 1) {
+                        player.f.barProgress[0] = 0
+                        player.f.points = player.f.points.add(layers.f.generation())
+                        player.f.barProgress[1] += layers.f.fillSpeed(2).toNumber()
+                    }
                 }
-            }
-            // fluid bar fills up in 1 tick:
-            if (layers.f.fillSpeed(1).mul(0.04).gte(1)) {
-                player.f.barProgress[0] = 1
-                player.f.points = player.f.points.add(layers.f.generation().mul(layers.f.fillSpeed(1)).mul(5).mul(diff))
-                player.f.fluidPerSecond = layers.f.generation().mul(layers.f.fillSpeed(1)).mul(5)
-                if (!player.f.infinity[1]) {
-                    // no vapor infinity
-                    if (layers.f.fillSpeed(2).mul(layers.f.fillSpeed(1).mul(0.04)).lt(1)) {
-                        // vapor bar fills up in more than 1 tick:
-                        player.f.barProgress[1] += layers.f.fillSpeed(2).mul(layers.f.fillSpeed(1).mul(diff)).toNumber()
-                        if (player.f.barProgress[1] >= 1) {
-                            player.f.barProgress[1] = 0
-                            player.f.vapor = player.f.vapor.add(layers.f.vaporGen())
+                // fluid bar fills up in 1 tick:
+                if (layers.f.fillSpeed(1).mul(0.04).gte(1)) {
+                    player.f.barProgress[0] = 1
+                    player.f.points = player.f.points.add(layers.f.generation().mul(layers.f.fillSpeed(1)).mul(5).mul(diff))
+                    player.f.fluidPerSecond = layers.f.generation().mul(layers.f.fillSpeed(1)).mul(5)
+                    if (!player.f.infinity[1]) {
+                        // no vapor infinity
+                        if (layers.f.fillSpeed(2).mul(layers.f.fillSpeed(1).mul(0.04)).lt(1)) {
+                            // vapor bar fills up in more than 1 tick:
+                            player.f.barProgress[1] += layers.f.fillSpeed(2).mul(layers.f.fillSpeed(1).mul(diff)).toNumber()
+                            if (player.f.barProgress[1] >= 1) {
+                                player.f.barProgress[1] = 0
+                                player.f.vapor = player.f.vapor.add(layers.f.vaporGen())
+                            }
+                        } else {
+                            // vapor bar fills up in 1 tick:
+                            player.f.barProgress[1] = 1
+                            player.f.vapor = player.f.vapor.add(layers.f.vaporGen().mul(layers.f.fillSpeed(2)).mul(layers.f.fillSpeed(1).mul(diff)))
                         }
                     } else {
-                        // vapor bar fills up in 1 tick:
-                        player.f.barProgress[1] = 1
-                        player.f.vapor = player.f.vapor.add(layers.f.vaporGen().mul(layers.f.fillSpeed(2)).mul(layers.f.fillSpeed(1).mul(diff)))
+                        // vapor infinity active
+                        player.f.barProgress[1] += (1 - (player.f.barProgress[1] * 1.1)) * 0.04
+                        if (player.f.barProgress[1] > 0.4) player.f.barProgress[1] += Math.cos(player.timePlayed * 8) * 0.05 * 0.04
+                        player.f.infinityFills[1] = player.f.infinityFills[1].add(layers.f.fillSpeed(3).mul(layers.f.fillSpeed(1).mul(0.04)))
+                        player.f.vaporPerSecond = new Decimal(0)
                     }
-                } else {
-                    // vapor infinity active
-                    player.f.barProgress[1] += (1 - (player.f.barProgress[1] * 1.1)) * 0.04
-                    if (player.f.barProgress[1] > 0.4) player.f.barProgress[1] += Math.cos(player.timePlayed * 8) * 0.05 * 0.04
-                    player.f.infinityFills[1] = player.f.infinityFills[1].add(layers.f.fillSpeed(3).mul(layers.f.fillSpeed(1).mul(0.04)))
-                    player.f.vaporPerSecond = new Decimal(0)
                 }
+            } else {
+                // fluid infinity active
+                player.f.barProgress[0] += (1 - (player.f.barProgress[0] * 1.1)) * 0.04
+                if (player.f.barProgress[0] > 0.4) player.f.barProgress[0] += Math.cos(player.timePlayed * 8) * 0.05 * 0.04
+                player.f.infinityFills[0] = player.f.infinityFills[0].add(layers.f.fillSpeed(1).mul(0.04))
+                player.f.fluidPerSecond = new Decimal(0)
             }
-        } else {
-            // fluid infinity active
-            player.f.barProgress[0] += (1 - (player.f.barProgress[0] * 1.1)) * 0.04
-            if (player.f.barProgress[0] > 0.4) player.f.barProgress[0] += Math.cos(player.timePlayed * 8) * 0.05 * 0.04
-            player.f.infinityFills[0] = player.f.infinityFills[0].add(layers.f.fillSpeed(1).mul(0.04))
-            player.f.fluidPerSecond = new Decimal(0)
+            if (hasMilestone("f",0)) player.f.singularities = player.f.singularities.add(layers.f.singularityGen().mul(diff))
+            if (hasMilestone("f",1)) player.f.planckPoints = player.f.planckPoints.add(layers.f.planckPointsGen().mul(diff))
         }
-        if (hasMilestone("f",0)) player.f.singularities = player.f.singularities.add(layers.f.singularityGen().mul(diff))
-        if (hasMilestone("f",1)) player.f.planckPoints = player.f.planckPoints.add(layers.f.planckPointsGen().mul(diff))
     },
 
     // UI elements
