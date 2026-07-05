@@ -93,6 +93,10 @@ addLayer("f", {
                         player.f.points = player.f.points.add(layers.f.generation())
                         player.f.barProgress[1] += layers.f.fillSpeed(2).toNumber()
                     }
+                    if (player.f.barProgress[1] >= 1) {
+                        player.f.barProgress[1] = 0
+                        player.f.vapor = player.f.vapor.add(layers.f.vaporGen())
+                    }
                 }
                 // fluid bar fills up in 1 tick:
                 if (layers.f.fillSpeed(1).mul(0.04).gte(1)) {
