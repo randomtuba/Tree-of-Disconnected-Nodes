@@ -32,6 +32,13 @@ addLayer("ach", {
             tooltip() {return `Reach ${format(1e9)} singularities.`},
             style() {const style = {}; if (hasAchievement(this.layer,this.id)) style["background-color"] = "#6cc9fe"; return style},
         },
+        31: {
+            name: "Conway's weeds",
+            done() {return layers.c.upgraderTileCount() >= 80},
+            tooltip() {return `Have at least ${formatWhole(80)} upgrader tiles.`},
+            style() {const style = {}; if (hasAchievement(this.layer,this.id)) style["background-color"] = "#8c51d8"; return style},
+            unlocked() {return player.c.unlocked}
+        },
     },
 })
 
@@ -92,6 +99,25 @@ addLayer("help", {
                 I attempted to clear my head. Let's shift to an optimistic perspective.<br><br>
                 I genuinely believe that the world will get better over time. New concepts will be normalized, more opportunities will be accessible, and technology will improve.<br><br>
                 Despite whatever pressures you have mounted on yourself, please remember that the future is uncertain, so you can be the one to shape it.`],
+            ],
+        },
+        "Chips": {
+            unlocked() {return player.c.unlocked},
+            buttonStyle: {
+                "border-color": "#8c51d8",
+            },
+            content: [
+                ["display-text", () => `Within this new environment, I eventually regained the ability to move around freely. The more that I exercised my muscles in this pressurized location, the more that my limbs adjusted to become useful again.<br><br>
+                At one point, I grew curious. I stretched my left leg forward, slowly pressing my foot down into the sand. Then, I consciously made my left leg into a pivot. Picking up my right leg, I was able to place my foot down further than my left foot. I had figured out how to walk!<br><br>
+                Every now and then, I walked around and explored my new habitat. I made sure to draw a circle in the sand from where I had first spawned. Initially, I only traveled a few meters forward and then retreated anxiously. But as I continued my movements, I became more daring with my pathing.<br><br>
+                Ten meters. Twenty meters. Fifty meters. At some point, I decided that I was going to keep moving forward in a straight line. I would refuse to walk back until I found something interesting. Now that I had sealed my mental pact, I gazed wistfully into the horizon of the undersea and began my long trek.<br><br>
+                For a long time, I didn't see anything but the preexisting water and sand that I had unfortunately grown accustomed to. However, this changed when I was approximately 300 meters into my journey.<br><br>
+                There was a light. A blinking green light, far away from me. But I could still see it. I grew so excited that at some point my body forgot to recognize the pressure around me.<br><br>
+                I attempted to jump, and my feet were lifted off the ground. However, I didn't fall back down. I flailed my arms, and yet they only pushed me forward. At that moment, I realized that I was able to freely swim.<br><br>
+                I kept swimming and reached the green light. It was coming from a small computer on a desk. Alongside the computer was a keyboard and mouse. Why was this here at the bottom of the ocean? It probably didn't even work. But why was the setup so neatly put together?<br><br>
+                This reminds me about something. Humans naturally want to figure out the solutions to everything. Oftentimes, forcing neat answers to all of life's questions forms a misconstrued picture.<br><br>
+                Many of us so badly want to pretend that we are fully rational creatures. However, in the farthest corners of our brains, there exists an irrational mind. One with thoughts, desires, and emotions that we cannot fully understand. We try to logically reason through why these thoughts are wrong or irrelevant; yet, they continue to return.<br><br>
+                I think I just need to accept that my world is inherently irrational, too.`],
             ],
         },
     },

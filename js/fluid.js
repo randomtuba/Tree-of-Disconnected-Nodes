@@ -30,6 +30,7 @@ addLayer("f", {
         mult = mult.mul(buyableEffect("f", 13))
         mult = mult.mul(buyableEffect("f", 23))
         mult = mult.mul(layers.f.singularityEffect())
+        mult = mult.mul(layers.c.chipsEffect())
         return mult
     },
     gainExp() {
@@ -39,7 +40,7 @@ addLayer("f", {
         return this.gainMult().pow(this.gainExp())
     },
     vaporGen() {
-        return buyableEffect("f", 21)
+        return buyableEffect("f", 21).mul(layers.c.chipsEffect())
     },
     singularityGen() {
         let gen = Decimal.pow(1.5, getBuyableAmount("f",11).add(getBuyableAmount("f",21)).sub(15))
@@ -79,9 +80,44 @@ addLayer("f", {
             return new Decimal(0.001).mul(buyableEffect("f", 22)).mul(layers.f.infinityFillEffect(2)).mul(buyableEffect("f", 32))
         }
     },
+    automate() {
+        let a = new Decimal(0)
+        let b = new Decimal(0)
+        let c = new Decimal(0)
+        if (player.f.autoFluidBuyables && hasMilestone("m",4)) {
+            a = Decimal.log10(1.1)
+            b = Decimal.log10(5)
+            c = Decimal.log10(3).sub(player.f.points.max(1).log10())
+            setBuyableAmount("f", 11, tmp.f.buyables[11].canAfford ? b.mul(-1).add(Decimal.pow(b,2).sub(Decimal.mul(4,a.mul(c))).max(0).sqrt()).div(a.mul(2)).add(1).floor() : getBuyableAmount("f",11))
+            a = Decimal.log10(1.2)
+            b = Decimal.log10(4)
+            c = Decimal.log10(30).sub(player.f.points.max(1).log10())
+            setBuyableAmount("f", 12, tmp.f.buyables[12].canAfford ? b.mul(-1).add(Decimal.pow(b,2).sub(Decimal.mul(4,a.mul(c))).max(0).sqrt()).div(a.mul(2)).add(1).floor() : getBuyableAmount("f",12))
+            a = Decimal.log10(1.3)
+            b = Decimal.log10(6)
+            c = Decimal.log10(300).sub(player.f.points.max(1).log10())
+            setBuyableAmount("f", 13, tmp.f.buyables[13].canAfford ? b.mul(-1).add(Decimal.pow(b,2).sub(Decimal.mul(4,a.mul(c))).max(0).sqrt()).div(a.mul(2)).add(1).floor() : getBuyableAmount("f",13))
+        }
+        if (player.f.autoVaporBuyables && hasMilestone("m",4)) {
+            a = Decimal.log10(1.05)
+            b = Decimal.log10(3)
+            c = Decimal.log10(3).sub(player.f.vapor.max(1).log10())
+            setBuyableAmount("f", 21, tmp.f.buyables[21].canAfford ? b.mul(-1).add(Decimal.pow(b,2).sub(Decimal.mul(4,a.mul(c))).max(0).sqrt()).div(a.mul(2)).add(1).floor() : getBuyableAmount("f",21))
+            a = Decimal.log10(1.1)
+            b = Decimal.log10(3)
+            c = Decimal.log10(1).sub(player.f.vapor.max(1).log10())
+            setBuyableAmount("f", 22, tmp.f.buyables[22].canAfford ? b.mul(-1).add(Decimal.pow(b,2).sub(Decimal.mul(4,a.mul(c))).max(0).sqrt()).div(a.mul(2)).add(1).floor() : getBuyableAmount("f",22))
+            a = Decimal.log10(1.15)
+            b = Decimal.log10(3)
+            c = Decimal.log10(10).sub(player.f.vapor.max(1).log10())
+            setBuyableAmount("f", 23, tmp.f.buyables[23].canAfford ? b.mul(-1).add(Decimal.pow(b,2).sub(Decimal.mul(4,a.mul(c))).max(0).sqrt()).div(a.mul(2)).add(1).floor() : getBuyableAmount("f",23))
+        }
+    },
     update(diff) {
         if (!player[this.layer].unlocked && player.m.points.gte(1e66)) player[this.layer].unlocked = true
         if (player[this.layer].unlocked) {
+            if (hasMilestone("f",5)) player.f.vapor = player.f.vapor.add(layers.f.vaporGen().mul(diff))
+            
             if (!player.f.infinity[0]) {
                 // no fluid infinity
                 // fluid bar fills up in more than 1 tick:
@@ -121,7 +157,7 @@ addLayer("f", {
                         // vapor infinity active
                         player.f.barProgress[1] += (1 - (player.f.barProgress[1] * 1.1)) * 0.04
                         if (player.f.barProgress[1] > 0.4) player.f.barProgress[1] += Math.cos(player.timePlayed * 8) * 0.05 * 0.04
-                        player.f.infinityFills[1] = player.f.infinityFills[1].add(layers.f.fillSpeed(3).mul(layers.f.fillSpeed(1).mul(0.04)))
+                        if (!hasMilestone("f",3)) player.f.infinityFills[1] = player.f.infinityFills[1].add(layers.f.fillSpeed(3).mul(layers.f.fillSpeed(1).mul(diff)))
                         player.f.vaporPerSecond = new Decimal(0)
                     }
                 }
@@ -129,11 +165,15 @@ addLayer("f", {
                 // fluid infinity active
                 player.f.barProgress[0] += (1 - (player.f.barProgress[0] * 1.1)) * 0.04
                 if (player.f.barProgress[0] > 0.4) player.f.barProgress[0] += Math.cos(player.timePlayed * 8) * 0.05 * 0.04
-                player.f.infinityFills[0] = player.f.infinityFills[0].add(layers.f.fillSpeed(1).mul(0.04))
+                if (!hasMilestone("f",3)) player.f.infinityFills[0] = player.f.infinityFills[0].add(layers.f.fillSpeed(1).mul(diff))
                 player.f.fluidPerSecond = new Decimal(0)
             }
             if (hasMilestone("f",0)) player.f.singularities = player.f.singularities.add(layers.f.singularityGen().mul(diff))
             if (hasMilestone("f",1)) player.f.planckPoints = player.f.planckPoints.add(layers.f.planckPointsGen().mul(diff))
+            if (hasMilestone("f",3)) {
+                player.f.infinityFills[0] = player.f.infinityFills[0].add(layers.f.fillSpeed(1).mul(diff))
+                player.f.infinityFills[1] = player.f.infinityFills[1].add(layers.f.fillSpeed(3).mul(layers.f.fillSpeed(1).mul(diff)))
+            }
         }
     },
 
@@ -151,6 +191,7 @@ addLayer("f", {
         "blank",
         ["display-text", () => `Your vapor is multiplying gain of matter particles by <h2 style="color: #2e7197; text-shadow: 0px 0px 10px #2e7197">${format(layers.f.vaporEffect())}</h2>x.`],
         ["display-text", () => `You are getting ${format(layers.f.vaporGen())} vapor every time the second bar fills up.`],
+        () => hasMilestone("f",5) ? ["display-text", `You are also getting ${format(layers.f.vaporGen())} vapor per second.`] : '',
         ["display-text", () => `<span style="color:red">The fill speed of the second bar is divided by your vapor amount.</span>`],
         () => hasMilestone("f",2) ? ["display-text", `<span style="color:yellow">It has ${format(player.f.infinityFills[1])} stored fills, multiplying its fill speed by ${format(layers.f.infinityFillEffect(2))}x.</span>`] : '',
         "blank",
@@ -164,7 +205,7 @@ addLayer("f", {
         () => hasMilestone("f",0) ? "clickables" : '',
         "blank",
         () => hasMilestone("f",1) ? ["display-text", `You have <h2 style="color: #ff5900; text-shadow: 0px 0px 10px #ff5900">${format(player.f.planckPoints)}</h2> Planck points. (${format(layers.f.planckPointsGen())}/sec)`] : '',
-        () => hasMilestone("f",1) ? ["display-text", `You gain more singularities based on Temperature and Temperature<sup>2</sup> purchases.`] : '',
+        () => hasMilestone("f",1) ? ["display-text", `You gain more Planck points based on Temperature and Temperature<sup>2</sup> purchases.`] : '',
         "blank",
         () => hasMilestone("f",1) ? ["buyables", [3]] : '',
         "blank",
@@ -296,6 +337,28 @@ addLayer("f", {
             effectDescription: "Unlock Vapor Infinity.",
             done() { return getBuyableAmount("f",11).gte(22) },
             unlocked() { return hasMilestone("f",1) },
+        },
+        3: {
+            requirementDescription() {return `${formatWhole(31)} Pressure purchases`},
+            effectDescription: "Stored fills can be generated when infinities are inactive.",
+            done() { return getBuyableAmount("f",11).gte(31) },
+            unlocked() { return player.c.unlocked },
+        },
+        4: {
+            requirementDescription() {return `${formatWhole(30)} Volume purchases`},
+            effectDescription: "Autobuy fluid and vapor buyables without consuming fluid and vapor.",
+            done() { return getBuyableAmount("f",12).gte(30) },
+            unlocked() { return hasMilestone("f",3) },
+            toggles: [
+                ["f","autoFluidBuyables"],
+                ["f","autoVaporBuyables"],
+            ],
+        },
+        5: {
+            requirementDescription() {return `${formatWhole(36)} Volume purchases`},
+            effectDescription: "Passively generate vapor even if the second bar isn't full.",
+            done() { return getBuyableAmount("f",12).gte(36) },
+            unlocked() { return hasMilestone("f",4) },
         },
     },
     clickables: {
