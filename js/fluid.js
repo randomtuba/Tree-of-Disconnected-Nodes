@@ -84,7 +84,7 @@ addLayer("f", {
         let a = new Decimal(0)
         let b = new Decimal(0)
         let c = new Decimal(0)
-        if (player.f.autoFluidBuyables && hasMilestone("m",4)) {
+        if (player.f.autoFluidBuyables && hasMilestone("f",4)) {
             a = Decimal.log10(1.1)
             b = Decimal.log10(5)
             c = Decimal.log10(3).sub(player.f.points.max(1).log10())
@@ -98,7 +98,7 @@ addLayer("f", {
             c = Decimal.log10(300).sub(player.f.points.max(1).log10())
             setBuyableAmount("f", 13, tmp.f.buyables[13].canAfford ? b.mul(-1).add(Decimal.pow(b,2).sub(Decimal.mul(4,a.mul(c))).max(0).sqrt()).div(a.mul(2)).add(1).floor() : getBuyableAmount("f",13))
         }
-        if (player.f.autoVaporBuyables && hasMilestone("m",4)) {
+        if (player.f.autoVaporBuyables && hasMilestone("f",4)) {
             a = Decimal.log10(1.05)
             b = Decimal.log10(3)
             c = Decimal.log10(3).sub(player.f.vapor.max(1).log10())
@@ -111,6 +111,20 @@ addLayer("f", {
             b = Decimal.log10(3)
             c = Decimal.log10(10).sub(player.f.vapor.max(1).log10())
             setBuyableAmount("f", 23, tmp.f.buyables[23].canAfford ? b.mul(-1).add(Decimal.pow(b,2).sub(Decimal.mul(4,a.mul(c))).max(0).sqrt()).div(a.mul(2)).add(1).floor() : getBuyableAmount("f",23))
+        }
+        if (player.f.autoPlanckBuyables && hasMilestone("f",6)) {
+            a = Decimal.log10(1.05)
+            b = Decimal.log10(8)
+            c = Decimal.log10(20).sub(player.f.planckPoints.max(1).log10())
+            setBuyableAmount("f", 31, tmp.f.buyables[31].canAfford ? b.mul(-1).add(Decimal.pow(b,2).sub(Decimal.mul(4,a.mul(c))).max(0).sqrt()).div(a.mul(2)).add(1).floor() : getBuyableAmount("f",31))
+            a = Decimal.log10(1.1)
+            b = Decimal.log10(12)
+            c = Decimal.log10(50).sub(player.f.planckPoints.max(1).log10())
+            setBuyableAmount("f", 32, tmp.f.buyables[32].canAfford ? b.mul(-1).add(Decimal.pow(b,2).sub(Decimal.mul(4,a.mul(c))).max(0).sqrt()).div(a.mul(2)).add(1).floor() : getBuyableAmount("f",32))
+            a = Decimal.log10(1.15)
+            b = Decimal.log10(16)
+            c = Decimal.log10(250).sub(player.f.planckPoints.max(1).log10())
+            setBuyableAmount("f", 33, tmp.f.buyables[33].canAfford ? b.mul(-1).add(Decimal.pow(b,2).sub(Decimal.mul(4,a.mul(c))).max(0).sqrt()).div(a.mul(2)).add(1).floor() : getBuyableAmount("f",33))
         }
     },
     update(diff) {
@@ -359,6 +373,15 @@ addLayer("f", {
             effectDescription: "Passively generate vapor even if the second bar isn't full.",
             done() { return getBuyableAmount("f",12).gte(36) },
             unlocked() { return hasMilestone("f",4) },
+        },
+        6: {
+            requirementDescription() {return `${formatWhole(40)} Temperature purchases`},
+            effectDescription: "Autobuy planck point buyables without consuming planck points.",
+            done() { return getBuyableAmount("f",13).gte(40) },
+            unlocked() { return hasMilestone("f",5) },
+            toggles: [
+                ["f","autoPlanckBuyables"],
+            ],
         },
     },
     clickables: {

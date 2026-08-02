@@ -2,7 +2,7 @@ let modInfo = {
 	name: "Tree of Disconnected Nodes",
 	author: "randomtuba",
 	pointsName: "",
-	modFiles: ["tree.js", "side-layers.js", "matter.js", "fluid.js", "chips.js"],
+	modFiles: ["tree.js", "side-layers.js", "matter.js", "fluid.js", "chips.js", "strings.js"],
 
 	discordName: "tuba's new place",
 	discordLink: "https://discord.gg/HhcavwM5rm",
@@ -12,12 +12,17 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "Act 1 Part 3",
-	name: "Chips",
+	num: "Act 1 Part 4",
+	name: "Strings",
 }
 
 let changelog = `<h1>Changelog</h1><br>
 	<span style="font-size:11px;">If this game gets abandoned, don't forget me ok?</span><br><br>
+	<h3>Act 1 Part 4: Chips (8/1/2026)</h3><br>
+	<b>Endgame: 1.00e380 strings</b><br>
+		- Added the Strings node.<br>
+		- Added 5 achievements.<br>
+		- Added 3 chips milestones.<br><br>
 	<h3>Act 1 Part 3: Chips (7/18/2026)</h3><br>
 	<b>Endgame: 1.00e49 chips</b><br>
 		- Added the Chips node.<br>
@@ -60,6 +65,7 @@ function getPointGen() {
 	gain = gain.mul(player.f.singularities.sqrt().add(1))
 	gain = gain.mul(player.f.planckPoints.cbrt().add(1))
 	gain = gain.mul(getBuyableAmount("c",11).add(getBuyableAmount("c",12)).add(getBuyableAmount("c",13)).add(getBuyableAmount("c",21)).add(getBuyableAmount("c",22)).add(getBuyableAmount("c",23)).add(getBuyableAmount("c",31)).add(getBuyableAmount("c",32)).add(getBuyableAmount("c",33)).add(1))
+	gain = gain.mul(player.s.stringTypes[1].add(1)).mul(player.s.stringTypes[2].add(1)).mul(player.s.stringTypes[3].add(1)).mul(player.s.stringTypes[4].add(1)).mul(player.s.stringTypes[5].add(1))
 	return gain
 }
 
@@ -69,12 +75,12 @@ function addedPlayerData() { return {
 
 // Display extra things at the top of the page
 var displayThings = [
-	() => `Current Endgame: ${format(1e49)} chips`,
+	() => `Current Endgame: ${format("1e380")} strings`,
 ]
 
 // Determines when the game "ends"
 function isEndgame() {
-	return player.c.points.gte(new Decimal(1e49))
+	return player.s.points.gte(new Decimal("1e380"))
 }
 
 
@@ -87,7 +93,8 @@ function backgroundStyle() {
 
   	if (!player.f.unlocked) ret["background-color"] = "#1e0a1d"
 	else if (!player.c.unlocked) ret["background-color"] = "#0c161c"
-	else ret["background-color"] = "#150c1c"
+	else if (!player.s.unlocked) ret["background-color"] = "#150c1c"
+	else ret["background-color"] = "#05140b"
 
   	return ret
 }

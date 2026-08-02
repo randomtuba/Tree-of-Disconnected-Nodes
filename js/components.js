@@ -596,6 +596,22 @@ function loadVue() {
 				v-bind:class="{ longUpg: true, can: player[layer].unlocked, locked: !player[layer].unlocked }">{{tmp[layer].buyables.sellAllText ? tmp[layer].buyables.sellAllText : "Sell All"}}</button>
 	`
 	})
+	Vue.component('strings-table', {
+		props: ['layer', 'data'],
+		template: `
+			<table>
+				<tr v-for="a in hasMilestone('s',2) ? (hasMilestone('s',3) ? 5 : 4) : 3">
+					<td style="border: 4px solid #ffffff; height: 125px; min-width: 175px; max-width: 175px;">
+						You have {{format(data.s.stringTypes[a])}} {{layers.s.getStringName(a)}} strings, multiplying {{layers.s.getStringName(a-1)}} string gain by {{format(layers.s.stringTypeEffect(a))}}x.<br>({{format(layers.s.stringTypeGen(a))}}/sec)
+					</td>
+					<td v-for="b in hasMilestone('s',0) ? 4 : 3" style="border: 4px solid #ffffff; height: 125px; min-width: 175px; max-width: 175px;">
+						{{b == 1 ? "Length" : (b == 2 ? "Width" : (b == 3 ? "Depth" : "Tessth"))}}: {{formatWhole(player.s.dimensionUpgrades[(4*(a-1)) + b])}}m
+						<clickable :layer = "layer" :data = "b + (10*a)" v-bind:style="tmp[layer].componentStyles.clickable"></clickable>
+					</td>
+				</tr>
+			</table>
+		`
+	})
 
 	// SYSTEM COMPONENTS
 	Vue.component('node-mark', systemComponents['node-mark'])

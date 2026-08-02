@@ -2,7 +2,7 @@ addLayer("c", {
     // general stuff
     name: "chips",
     symbol: "C",
-    position: 0, // horizontal position
+    position: 1, // horizontal position
     startData() { return {
         unlocked: false,
 		points: new Decimal(0),
@@ -37,6 +37,7 @@ addLayer("c", {
         let gen = player.c.points
         gen = gen.mul(buyableEffect("c",11))
         gen = gen.mul(buyableEffect("c",33))
+        gen = gen.mul(layers.s.stringsEffect())
         return gen
     },
     chipsEffect() {
@@ -63,6 +64,37 @@ addLayer("c", {
         }
         return count
     },
+    automate() {
+        let a = new Decimal(0)
+        let b = new Decimal(0)
+        let c = new Decimal(0)
+        if (player.c.autoByteBuyables && hasMilestone("c",4)) {
+            a = Decimal.log10(1.05)
+            b = Decimal.log10(4)
+            c = Decimal.log10(200).sub(player.c.bytes.max(1).log10())
+            setBuyableAmount("c", 11, tmp.c.buyables[11].canAfford ? b.mul(-1).add(Decimal.pow(b,2).sub(Decimal.mul(4,a.mul(c))).max(0).sqrt()).div(a.mul(2)).add(1).floor() : getBuyableAmount("c",11))
+            a = Decimal.log10(1.1)
+            b = Decimal.log10(5)
+            c = Decimal.log10(1000).sub(player.c.bytes.max(1).log10())
+            setBuyableAmount("c", 12, tmp.c.buyables[12].canAfford ? b.mul(-1).add(Decimal.pow(b,2).sub(Decimal.mul(4,a.mul(c))).max(0).sqrt()).div(a.mul(2)).add(1).floor() : getBuyableAmount("c",12))
+            a = Decimal.log10(1.2)
+            b = Decimal.log10(25)
+            c = Decimal.log10(1e14).sub(player.c.bytes.max(1).log10())
+            setBuyableAmount("c", 23, tmp.c.buyables[23].canAfford ? b.mul(-1).add(Decimal.pow(b,2).sub(Decimal.mul(4,a.mul(c))).max(0).sqrt()).div(a.mul(2)).add(1).floor() : getBuyableAmount("c",23))
+            a = Decimal.log10(1.1)
+            b = Decimal.log10(10000)
+            c = Decimal.log10(1e36).sub(player.c.bytes.max(1).log10())
+            setBuyableAmount("c", 33, tmp.c.buyables[33].canAfford ? b.mul(-1).add(Decimal.pow(b,2).sub(Decimal.mul(4,a.mul(c))).max(0).sqrt()).div(a.mul(2)).add(1).floor() : getBuyableAmount("c",33))
+        }
+        if (player.c.autoWindfall && player.c.windfallCooldown <= 0 && hasMilestone("c",6)) {
+            player.c.windfallCooldown = hasMilestone("c",5) ? 2 : 20
+            for (let i = 0; i < 40; i++) {
+                let rand = Math.random()
+                let selected = layers.c.numberToGridID((Math.random() * (buyableEffect("c",22) ** 2)) + 1)
+                player.c.grid[selected] = 4
+            }
+        }
+    },
     update(diff) {
         if (!player[this.layer].unlocked && player.f.points.gte(1e42)) player[this.layer].unlocked = true
         if (player[this.layer].unlocked) {
@@ -81,6 +113,7 @@ addLayer("c", {
             player.c.bytes = player.c.bytes.add(layers.c.bytesGen().mul(diff))
             if (hasMilestone("c", 3) && player.c.windfallCooldown > 0) player.c.windfallCooldown -= diff
             if (player.c.windfallCooldown < 0) player.c.windfallCooldown = 0
+            if (hasMilestone("c",6) && layers.c.upgraderTileCount() > 0) layers.c.grid.onClick(player.c.grid[505], 505, 6)
         }
     },
 
@@ -247,15 +280,39 @@ addLayer("c", {
             done() { return player.c.points.gte(1e35) },
             unlocked() { return hasMilestone("c",2) },
         },
+        4: {
+            requirementDescription() {return `${format(1e60)} chips`},
+            effectDescription: "Autobuy byte buyables without consuming bytes.",
+            done() { return player.c.points.gte(1e60) },
+            unlocked() { return player.s.unlocked },
+            toggles: [
+                ["c","autoByteBuyables"],
+            ],
+        },
+        5: {
+            requirementDescription() {return `${format(1e90)} chips`},
+            effectDescription: "+1 max click radius and the Windfall cooldown is 2 seconds.",
+            done() { return player.c.points.gte(1e90) },
+            unlocked() { return hasMilestone("c",4) },
+        },
+        6: {
+            requirementDescription() {return `${format(1e120)} chips`},
+            effectDescription: "Unlock Auto-Windfall and the board is automatically cleared if upgrader tiles are present.",
+            done() { return player.c.points.gte(1e120) },
+            unlocked() { return hasMilestone("c",5) },
+            toggles: [
+                ["c","autoWindfall"],
+            ],
+        },
     },
     clickables: {
         11: {display: `<h2>-</h2>`,onClick() {player.c.clickRadius--},canClick() {return player.c.clickRadius > 1},style() {return {"width": "75px", "min-height": "75px"}},},
-        12: {display: `<h2>+</h2>`,onClick() {player.c.clickRadius++},canClick() {return player.c.clickRadius < buyableEffect("c",31)},style() {return {"width": "75px", "min-height": "75px"}},},
+        12: {display: `<h2>+</h2>`,onClick() {player.c.clickRadius++},canClick() {return player.c.clickRadius < buyableEffect("c",31) + (hasMilestone("c",5) ? 1 : 0)},style() {return {"width": "75px", "min-height": "75px"}},},
         21: {
             display() {return `Windfall${player.c.windfallCooldown > 0 ? `<br>(${format(player.c.windfallCooldown)}s)` : ``}`},
             tooltip: `Summon a lot of upgrader tiles`,
             onClick() {
-                player.c.windfallCooldown = 20
+                player.c.windfallCooldown = hasMilestone("c",5) ? 2 : 20
                 for (let i = 0; i < 40; i++) {
                     let rand = Math.random()
                     let selected = layers.c.numberToGridID((Math.random() * (buyableEffect("c",22) ** 2)) + 1)
