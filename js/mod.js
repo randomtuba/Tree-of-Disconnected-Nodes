@@ -18,10 +18,11 @@ let VERSION = {
 
 let changelog = `<h1>Changelog</h1><br>
 	<span style="font-size:11px;">If this game gets abandoned, don't forget me ok?</span><br><br>
-	<h3>Act 1 Part 4: Chips (8/1/2026)</h3><br>
+	<h3>Act 1 Part 4: Strings (8/1/2026)</h3><br>
 	<b>Endgame: 1.00e380 strings</b><br>
 		- Added the Strings node.<br>
 		- Added 5 achievements.<br>
+		- Added 1 fluid milestone.<br>
 		- Added 3 chips milestones.<br><br>
 	<h3>Act 1 Part 3: Chips (7/18/2026)</h3><br>
 	<b>Endgame: 1.00e49 chips</b><br>
