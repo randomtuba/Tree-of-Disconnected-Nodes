@@ -28,7 +28,9 @@ addLayer("c", {
         return mult
     },
     gainExp() {
-        return new Decimal(1)
+        let exp = new Decimal(1)
+        if (getBuyableAmount("b",13).gte(5)) exp = exp.mul(layers.b.boxesEffect(5))
+        return exp
     },
     generation() {
         return this.gainMult().pow(this.gainExp())
@@ -63,6 +65,15 @@ addLayer("c", {
             if (player.c.grid[layers.c.numberToGridID(i)] == 4) count++
         }
         return count
+    },
+    boxReset() {
+        player.c.buyables[11] = new Decimal(0)
+        player.c.buyables[12] = new Decimal(0)
+        player.c.buyables[23] = new Decimal(0)
+        player.c.buyables[33] = new Decimal(0)
+        player.c.points = new Decimal(0)
+        player.c.bytes = new Decimal(0)
+        player.c.goldenTileMult = new Decimal(10)
     },
     automate() {
         let a = new Decimal(0)
@@ -154,7 +165,7 @@ addLayer("c", {
                 player[this.layer].bytes = player[this.layer].bytes.sub(this.cost())
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
-            effect() {return Decimal.pow(2, getBuyableAmount(this.layer, this.id))},
+            effect() {return player.b.chipToggles[0] ? Decimal.pow(2, getBuyableAmount(this.layer, this.id)) : new Decimal(1)},
         },
         12: {
             title: "<h3>Central Processing Unit</h3>",
@@ -165,7 +176,7 @@ addLayer("c", {
                 player[this.layer].bytes = player[this.layer].bytes.sub(this.cost())
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
-            effect() {return Decimal.pow(3, getBuyableAmount(this.layer, this.id))},
+            effect() {return player.b.chipToggles[1] ? Decimal.pow(3, getBuyableAmount(this.layer, this.id)) : new Decimal(1)},
         },
         13: {
             title: "<h3>Graphics Processing Unit</h3>",
@@ -213,7 +224,7 @@ addLayer("c", {
                 player[this.layer].bytes = player[this.layer].bytes.sub(this.cost())
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
-            effect() {return Decimal.pow(10, getBuyableAmount(this.layer, this.id))},
+            effect() {return player.b.chipToggles[2] ? Decimal.pow(10, getBuyableAmount(this.layer, this.id)) : new Decimal(1)},
             unlocked() {return hasMilestone("c", 0)},
         },
         31: {
@@ -239,7 +250,7 @@ addLayer("c", {
                 player[this.layer].bytes = player[this.layer].bytes.sub(this.cost())
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
-            effect() {return Decimal.pow(5, getBuyableAmount(this.layer, this.id))},
+            effect() {return player.b.chipToggles[3] ? Decimal.pow(5, getBuyableAmount(this.layer, this.id)) : new Decimal(1)},
             unlocked() {return hasMilestone("c", 2)},
         },
         33: {
@@ -251,7 +262,7 @@ addLayer("c", {
                 player[this.layer].bytes = player[this.layer].bytes.sub(this.cost())
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
-            effect() {return Decimal.pow(10, getBuyableAmount(this.layer, this.id))},
+            effect() {return player.b.chipToggles[4] ? Decimal.pow(10, getBuyableAmount(this.layer, this.id)) : new Decimal(1)},
             unlocked() {return hasMilestone("c", 2)},
         },
     },
@@ -351,7 +362,7 @@ addLayer("c", {
             if (data == 1 || data < 0) {
                 player[this.layer].grid[id] = 0
                 player.c.points = player.c.points.add(layers.c.generation())
-                if (hasMilestone("c",0)) player.c.goldenTileMult = player.c.goldenTileMult.add(Decimal.mul(10, buyableEffect("c", 23)))
+                if (hasMilestone("c",0)) player.c.goldenTileMult = player.c.goldenTileMult.add(Decimal.mul(10, buyableEffect("c", 23).mul(getBuyableAmount("b",13).gte(6) ? layers.b.boxesEffect(6) : 1)))
             }
             if (data == 2) {
                 player[this.layer].grid[id] -= 2
@@ -361,7 +372,7 @@ addLayer("c", {
             if (data == 3) {
                 player[this.layer].grid[id] -= 3
                 player.c.points = player.c.points.add(layers.c.generation())
-                player.c.goldenTileMult = player.c.goldenTileMult.add(Decimal.mul(10, buyableEffect("c", 23)))
+                player.c.goldenTileMult = player.c.goldenTileMult.add(Decimal.mul(10, buyableEffect("c", 23).mul(getBuyableAmount("b",13).gte(6) ? layers.b.boxesEffect(6) : 1)))
                 let arr = [id - 1, id + 1, id - 100, id + 100, id - 101, id - 99, id + 99, id + 101]
                 for (let i = 0; i < 8; i++) {
                     if (player.c.grid[arr[i]] != undefined && player.c.grid[arr[i]] == 0) {
@@ -378,7 +389,7 @@ addLayer("c", {
             if (data == 4) {
                 player[this.layer].grid[id] -= 3
                 player.c.points = player.c.points.add(layers.c.generation().mul(50))
-                player.c.goldenTileMult = player.c.goldenTileMult.add(Decimal.mul(500, buyableEffect("c", 23)).mul(buyableEffect("c", 32)))
+                player.c.goldenTileMult = player.c.goldenTileMult.add(Decimal.mul(500, buyableEffect("c", 23)).mul(buyableEffect("c", 32)).mul(getBuyableAmount("b",13).gte(6) ? layers.b.boxesEffect(6) : 1))
                 let arr = [id - 1, id + 1, id - 100, id + 100, id - 101, id - 99, id + 99, id + 101]
                 for (let i = 0; i < 8; i++) {
                     if (player.c.grid[arr[i]] != undefined) {

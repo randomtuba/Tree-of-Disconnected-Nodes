@@ -34,13 +34,17 @@ addLayer("f", {
         return mult
     },
     gainExp() {
-        return new Decimal(1)
+        let exp = new Decimal(1)
+        if (getBuyableAmount("b",13).gte(3)) exp = exp.mul(layers.b.boxesEffect(3))
+        return exp
     },
     generation() {
         return this.gainMult().pow(this.gainExp())
     },
     vaporGen() {
-        return buyableEffect("f", 21).mul(layers.c.chipsEffect())
+        let gen = buyableEffect("f", 21).mul(layers.c.chipsEffect())
+        if (getBuyableAmount("b",13).gte(3)) gen = gen.pow(layers.b.boxesEffect(3))
+        return gen
     },
     singularityGen() {
         let gen = Decimal.pow(1.5, getBuyableAmount("f",11).add(getBuyableAmount("f",21)).sub(15))
@@ -59,14 +63,17 @@ addLayer("f", {
         return player.f.vapor.pow(2).add(1)
     },
     singularityEffect() {
-        return player.f.singularities.pow(0.25).add(1)
+        let eff = player.f.singularities.pow(0.25).add(1)
+        if (getBuyableAmount("b",13).gte(4)) eff = eff.pow(layers.b.boxesEffect(4))
+        if (!player.b.fluidToggles[6]) eff = new Decimal(1)
+        return eff
     },
     infinityFillEffect(x) {
         if (x == 1) {
-            return player.f.infinityFills[0].pow(0.1).add(1)
+            return player.b.fluidToggles[7] ? player.f.infinityFills[0].pow(0.1).add(1) : new Decimal(1)
         }
         if (x == 2) {
-            return player.f.infinityFills[1].pow(0.2).add(1)
+            return player.b.fluidToggles[8] ? player.f.infinityFills[1].pow(0.2).add(1) : new Decimal(1)
         }
     },
     fillSpeed(x) {
@@ -79,6 +86,23 @@ addLayer("f", {
         if (x == 3) { // vapor bar fill speed WITH vapor infinity active
             return new Decimal(0.001).mul(buyableEffect("f", 22)).mul(layers.f.infinityFillEffect(2)).mul(buyableEffect("f", 32))
         }
+    },
+    boxReset() {
+        player.f.buyables[11] = new Decimal(0)
+        player.f.buyables[12] = new Decimal(0)
+        player.f.buyables[13] = new Decimal(0)
+        player.f.buyables[21] = new Decimal(0)
+        player.f.buyables[22] = new Decimal(0)
+        player.f.buyables[23] = new Decimal(0)
+        player.f.buyables[31] = new Decimal(0)
+        player.f.buyables[32] = new Decimal(0)
+        player.f.buyables[33] = new Decimal(0)
+        player.f.points = new Decimal(0)
+        player.f.vapor = new Decimal(0)
+        player.f.barProgress = [0,0]
+        player.f.singularities = new Decimal(0)
+        player.f.infinityFills = [new Decimal(0),new Decimal(0)]
+        player.f.planckPoints = new Decimal(0)
     },
     automate() {
         let a = new Decimal(0)
@@ -234,7 +258,7 @@ addLayer("f", {
                 player[this.layer].points = player[this.layer].points.sub(this.cost())
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
-            effect() {return Decimal.pow(3.5, getBuyableAmount(this.layer, this.id))},
+            effect() {return player.b.fluidToggles[0] ? Decimal.pow(3.5, getBuyableAmount(this.layer, this.id)) : new Decimal(1)},
         },
         12: {
             title: "<h3>Volume</h3>",
@@ -245,7 +269,7 @@ addLayer("f", {
                 player[this.layer].points = player[this.layer].points.sub(this.cost())
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
-            effect() {return Decimal.pow(1.75, getBuyableAmount(this.layer, this.id))},
+            effect() {return player.b.fluidToggles[1] ? Decimal.pow(1.75, getBuyableAmount(this.layer, this.id)) : new Decimal(1)},
         },
         13: {
             title: "<h3>Temperature</h3>",
@@ -257,7 +281,7 @@ addLayer("f", {
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
             matterEffect() {return player.m.points.add(1).log10().add(1).log10().add(1)},
-            effect() {return Decimal.pow(this.matterEffect(), getBuyableAmount(this.layer, this.id))},
+            effect() {return player.b.fluidToggles[2] ? Decimal.pow(this.matterEffect(), getBuyableAmount(this.layer, this.id)) : new Decimal(1)},
         },
         21: {
             title: "<h3>Pressure<sup>2</sup></h3>",
@@ -268,7 +292,7 @@ addLayer("f", {
                 player[this.layer].vapor = player[this.layer].vapor.sub(this.cost())
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
-            effect() {return Decimal.pow(2, getBuyableAmount(this.layer, this.id))},
+            effect() {return player.b.fluidToggles[3] ? Decimal.pow(2, getBuyableAmount(this.layer, this.id)) : new Decimal(1)},
             style() {const style = {}; if (this.canAfford()) {style["background-color"] = "#2e7197"; style["color"] = "#ffffff"}; return style}
         },
         22: {
@@ -280,7 +304,7 @@ addLayer("f", {
                 player[this.layer].vapor = player[this.layer].vapor.sub(this.cost())
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
-            effect() {return Decimal.pow(1.5, getBuyableAmount(this.layer, this.id))},
+            effect() {return player.b.fluidToggles[4] ? Decimal.pow(1.5, getBuyableAmount(this.layer, this.id)) : new Decimal(1)},
             style() {const style = {}; if (this.canAfford()) {style["background-color"] = "#2e7197"; style["color"] = "#ffffff"}; return style}
         },
         23: {
@@ -293,7 +317,7 @@ addLayer("f", {
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
             vaporEffect() {return player.f.vapor.add(1).ln().add(1)},
-            effect() {return Decimal.pow(this.vaporEffect(), getBuyableAmount(this.layer, this.id))},
+            effect() {return player.b.fluidToggles[5] ? Decimal.pow(this.vaporEffect(), getBuyableAmount(this.layer, this.id)) : new Decimal(1)},
             style() {const style = {}; if (this.canAfford()) {style["background-color"] = "#2e7197"; style["color"] = "#ffffff"}; return style}
         },
         31: {
@@ -305,7 +329,7 @@ addLayer("f", {
                 player[this.layer].planckPoints = player[this.layer].planckPoints.sub(this.cost())
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
-            effect() {return Decimal.pow(5, getBuyableAmount(this.layer, this.id))},
+            effect() {return player.b.fluidToggles[9] ? Decimal.pow(5, getBuyableAmount(this.layer, this.id)) : new Decimal(1)},
             style() {const style = {}; if (this.canAfford()) {style["background-color"] = "#ff5900"}; return style}
         },
         32: {
@@ -317,7 +341,7 @@ addLayer("f", {
                 player[this.layer].planckPoints = player[this.layer].planckPoints.sub(this.cost())
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
-            effect() {return Decimal.pow(2, getBuyableAmount(this.layer, this.id))},
+            effect() {return player.b.fluidToggles[10] ? Decimal.pow(2, getBuyableAmount(this.layer, this.id)) : new Decimal(1)},
             style() {const style = {}; if (this.canAfford()) {style["background-color"] = "#ff5900"}; return style}
         },
         33: {
@@ -329,7 +353,7 @@ addLayer("f", {
                 player[this.layer].planckPoints = player[this.layer].planckPoints.sub(this.cost())
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
-            effect() {return Decimal.pow(5, getBuyableAmount(this.layer, this.id))},
+            effect() {return player.b.fluidToggles[11] ? Decimal.pow(5, getBuyableAmount(this.layer, this.id)) : new Decimal(1)},
             style() {const style = {}; if (this.canAfford()) {style["background-color"] = "#ff5900"}; return style}
         },
     },

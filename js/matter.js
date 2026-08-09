@@ -33,12 +33,15 @@ addLayer("m", {
         return mult
     },
     gainExp() {
-        return new Decimal(1)
+        exp = new Decimal(1)
+        if (getBuyableAmount("b",13).gte(1)) exp = exp.mul(layers.b.boxesEffect(1))
+        return exp
     },
     generation() {
         return this.gainMult().pow(this.gainExp())
     },
     powerMult(x) {
+        if (!player.b.matterToggles[x-1]) return new Decimal(1)
         return new Decimal(player[this.layer].power[x]).sqrt().add(1)
     },
     powerGen(x) {
@@ -108,38 +111,61 @@ addLayer("m", {
         let type = player.m.particles[str + (str == "tau" ? "" : "s")]
         switch (str) {
             case "proton":
-                if (x == 1) return type.pow(0.75).add(1)
+                if (x == 1) {
+                    let eff = !player.b.matterToggles[6] ? new Decimal(1) : type.pow(0.75).add(1)
+                    if (getBuyableAmount("b",13).gte(2)) eff = eff.pow(layers.b.boxesEffect(2))
+                    return eff
+                }
                 if (x == 2) return type.add(1).log10().add(1)
             break
             case "electron":
-                if (x == 1) return type.cbrt().add(1)
+                if (x == 1) {
+                    let eff = !player.b.matterToggles[6] ? new Decimal(1) : type.cbrt().add(1)
+                    if (getBuyableAmount("b",13).gte(2)) eff = eff.pow(layers.b.boxesEffect(2))
+                    return eff
+                }
                 if (x == 2) return type.add(1).log10().add(1).div(layers.m.particleEff("muon",1))
             break
             case "muon":
-                if (x == 1) return type.pow(1.5).add(1)
+                if (x == 1) return !player.b.matterToggles[7] ? new Decimal(1) : type.pow(1.5).add(1)
                 if (x == 2) return type.add(1).log10().add(1)
             break
             case "tau":
-                if (x == 1) return type.pow(1.5).add(1)
+                if (x == 1) return !player.b.matterToggles[7] ? new Decimal(1) : type.pow(1.5).add(1)
                 if (x == 2) return type.add(1).log10().add(1)
             break
             case "gluon":
-                return type.add(1).log10().add(1).ln().add(1)
+                if (!player.b.matterToggles[8]) return new Decimal(1)
+                else return type.add(1).log10().add(1).ln().add(1)
             break
             case "photon":
-                return type.add(1).log10().add(1).ln().add(1)
+                if (!player.b.matterToggles[8]) return new Decimal(1)
+                else return type.add(1).log10().add(1).ln().add(1)
             break
         }
     },
+    boxReset() {
+        player.m.points = new Decimal(0)
+        player.m.multiplier = [null,new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0)]
+        player.m.power = [null,new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0)]
+        player.m.particles = {
+            protons: new Decimal(0),
+            electrons: new Decimal(0),
+            muons: new Decimal(0),
+            tau: new Decimal(0),
+            gluons: new Decimal(0),
+            photons: new Decimal(0),
+        }
+    },
     automate() {
-      if (player.m.autoMults && hasMilestone("m",5)) {
-        if (player.m.points.gte(layers.m.multiplierCost(1))) player.m.multiplier[1] = player.m.points.mul(layers.m.particleEff("electron",1)).log(10).floor()
-        if (player.m.points.gte(layers.m.multiplierCost(2))) player.m.multiplier[2] = player.m.points.mul(layers.m.particleEff("electron",1)).log(100).floor()
-        if (player.m.points.gte(layers.m.multiplierCost(3))) player.m.multiplier[3] = player.m.points.mul(layers.m.particleEff("electron",1)).log(10000).floor()
-        if (player.m.points.gte(layers.m.multiplierCost(4))) player.m.multiplier[4] = player.m.points.mul(layers.m.particleEff("electron",1)).log(1e8).floor()
-        if (player.m.points.gte(layers.m.multiplierCost(5))) player.m.multiplier[5] = player.m.points.mul(layers.m.particleEff("electron",1)).log(1e16).floor()
-        if (player.m.points.gte(layers.m.multiplierCost(6))) player.m.multiplier[6] = player.m.points.mul(layers.m.particleEff("electron",1)).log(1e32).floor()
-      }
+        if (player.m.autoMults && hasMilestone("m",5)) {
+            if (player.m.points.gte(layers.m.multiplierCost(1))) player.m.multiplier[1] = player.m.points.mul(layers.m.particleEff("electron",1)).log(10).floor()
+            if (player.m.points.gte(layers.m.multiplierCost(2))) player.m.multiplier[2] = player.m.points.mul(layers.m.particleEff("electron",1)).log(100).floor()
+            if (player.m.points.gte(layers.m.multiplierCost(3))) player.m.multiplier[3] = player.m.points.mul(layers.m.particleEff("electron",1)).log(10000).floor()
+            if (player.m.points.gte(layers.m.multiplierCost(4))) player.m.multiplier[4] = player.m.points.mul(layers.m.particleEff("electron",1)).log(1e8).floor()
+            if (player.m.points.gte(layers.m.multiplierCost(5))) player.m.multiplier[5] = player.m.points.mul(layers.m.particleEff("electron",1)).log(1e16).floor()
+            if (player.m.points.gte(layers.m.multiplierCost(6))) player.m.multiplier[6] = player.m.points.mul(layers.m.particleEff("electron",1)).log(1e32).floor()
+        }
     },
     update(diff) {
         player[this.layer].points = player[this.layer].points.add(this.generation().mul(diff))

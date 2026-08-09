@@ -74,6 +74,20 @@ addLayer("ach", {
             style() {const style = {}; if (hasAchievement(this.layer,this.id)) style["background-color"] = "#2ec766"; return style},
             unlocked() {return player.s.unlocked}
         },
+        51: {
+            name: "Pandora's Box",
+            done() {return getBuyableAmount("b",13).gte(3)},
+            tooltip() {return `Have 3 Machine Makers.`},
+            style() {const style = {}; if (hasAchievement(this.layer,this.id)) style["background-color"] = "#e56b00"; return style},
+            unlocked() {return player.b.unlocked}
+        },
+        52: {
+            name: "Sinking ships",
+            done() {return player.f.points.gte("1e365") && player.b.boxed[1] && !player.b.fluidToggles.includes(true)},
+            tooltip() {return `Generate fluid cuboids with all fluid mechanic effects disabled.`},
+            style() {const style = {}; if (hasAchievement(this.layer,this.id)) style["background-color"] = "#e56b00"; return style},
+            unlocked() {return player.b.unlocked}
+        },
     },
 })
 
@@ -178,6 +192,27 @@ addLayer("help", {
                 <span style="color:#00ff00">"> strings"</span><br><br>
                 Rather than there being paragraphs displayed, a 3D ASCII display of a fluctuating grid appeared. Some text was written out at the bottom the screen, claiming that this was a quantum physics simulation.<br><br>
                 You know, after reading some of my transcribed thoughts through these commands, I recognize that I may come across as preachy or pretentious, as if I think I'm describing very deep or original feelings or perspectives that no one's ever said before when I'm actually making a fool out of myself. The truth is that I simply want to get out of here, okay?`],
+            ],
+        },
+        "Boxes": {
+            unlocked() {return player.b.unlocked},
+            buttonStyle: {
+                "border-color": "#e56b00",
+            },
+            content: [
+                ["display-text", () => `I was too confused and inexperienced to understand the simulation on the screen, so I scrolled past it. Glancing at the terminal, I was surprised to see a new message:<br><br>
+                <span style="color:#00ff00">"A new command has been unlocked. Type 'boxes' to learn more."</span><br><br>
+                If you say so...<br><br>
+                <span style="color:#00ff00">"> boxes"</span><br><br>
+                Upon pressing ENTER, the computer displayed a large ASCII square with an X on it. The X blinked in and out of existence every second. There were periods, too, that were scattered across the square.<br><br>
+                It took me a while to figure out what I was looking at, but I eventually realized that the computer was showing me a map of my environment. The periods were potentially representing the scattered sands, and as for the X...<br><br>
+                Was it my current location? If so, did that mean that there's been a fence around me this whole time? There's a slim chance, I thought, but the chance of escaping may be possible.<br><br>
+                After taking a final look at the illustrated map, I nodded the electronic setup goodbye and headed west, swimming through the ocean much more gracefully than earlier. I believed that giving myself time to rest was beneficial for my endurance through these waters.<br><br>
+                As I continued, I noticed something in the horizon getting closer and darker. I began telling myself that my freedom was not just possible anymore, but probable! The natural fog of the water slowly dwindled. Once I reached the structure, I placed my feet back down on the ground and took time to understand what was in front of me.<br><br>
+                A black wall stood before me. I could not see the top of the wall. With this, I came to the conclusion that I was either trapped inside a fenced-in area or a giant cube.<br><br>
+                Throughout our lives, we are constantly placed within various boxes, whether by ourselves or by others. But to be trapped in a literal box rather than a metaphorical one was quite stifling. I placed my hand against the wall, expecting to feel something akin to solid concrete, but was met with a dark, viscous liquid instead. I was shockingly able to pass through!<br><br>
+                While passing through the wall was more suffocating than anything I had experienced before, I felt something in my chest akin to euphoria, whether that was the fleeting adrenaline rush of escapism or the joy of escaping predetermined boundaries.<br><br>
+                No box fits all, and this enormous box certainly never fit me. When we realize the walls and ceilings around us, we can escape our boxes and find personal satisfaction that we never had before.`],
             ],
         },
     },

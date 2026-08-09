@@ -2,7 +2,7 @@ let modInfo = {
 	name: "Tree of Disconnected Nodes",
 	author: "randomtuba",
 	pointsName: "",
-	modFiles: ["tree.js", "side-layers.js", "matter.js", "fluid.js", "chips.js", "strings.js"],
+	modFiles: ["tree.js", "side-layers.js", "matter.js", "fluid.js", "chips.js", "strings.js", "boxes.js"],
 
 	discordName: "tuba's new place",
 	discordLink: "https://discord.gg/HhcavwM5rm",
@@ -12,12 +12,18 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "Act 1 Part 4",
-	name: "Strings",
+	num: "Act 1 Part 5",
+	name: "Boxes",
 }
 
 let changelog = `<h1>Changelog</h1><br>
 	<span style="font-size:11px;">If this game gets abandoned, don't forget me ok?</span><br><br>
+	<h3>Act 1 Part 5: Boxes (8/8/2026)</h3><br>
+	<b>Endgame: 1.00e98 boxes</b><br>
+		- Added the Boxes node.<br>
+		- Added 2 achievements.<br>
+		- Added 1 strings milestone.<br>
+		- Added 3 string flavors.<br><br>
 	<h3>Act 1 Part 4: Strings (8/1/2026)</h3><br>
 	<b>Endgame: 1.00e380 strings</b><br>
 		- Added the Strings node.<br>
@@ -45,7 +51,7 @@ let winText = `Congratulations! You have reached the end and beaten this game, b
 
 // If you add new functions anywhere inside of a layer, and those functions have an effect when called, add them here.
 // (The ones here are examples, all official functions are already taken care of)
-var doNotCallTheseFunctionsEveryTick = ["blowUpEverything"]
+var doNotCallTheseFunctionsEveryTick = ["blowUpEverything","boxReset"]
 
 function getStartPoints(){
     return new Decimal(modInfo.initialStartPoints)
@@ -67,6 +73,10 @@ function getPointGen() {
 	gain = gain.mul(player.f.planckPoints.cbrt().add(1))
 	gain = gain.mul(getBuyableAmount("c",11).add(getBuyableAmount("c",12)).add(getBuyableAmount("c",13)).add(getBuyableAmount("c",21)).add(getBuyableAmount("c",22)).add(getBuyableAmount("c",23)).add(getBuyableAmount("c",31)).add(getBuyableAmount("c",32)).add(getBuyableAmount("c",33)).add(1))
 	gain = gain.mul(player.s.stringTypes[1].add(1)).mul(player.s.stringTypes[2].add(1)).mul(player.s.stringTypes[3].add(1)).mul(player.s.stringTypes[4].add(1)).mul(player.s.stringTypes[5].add(1))
+	gain = gain.mul(player.b.cuboids[0].pow(10).add(1))
+	gain = gain.mul(player.b.cuboids[1].pow(10).add(1))
+	gain = gain.mul(player.b.cuboids[2].pow(10).add(1))
+	gain = gain.mul(player.b.cuboids[3].pow(10).add(1))
 	return gain
 }
 
@@ -76,12 +86,12 @@ function addedPlayerData() { return {
 
 // Display extra things at the top of the page
 var displayThings = [
-	() => `Current Endgame: ${format("1e380")} strings`,
+	() => `Current Endgame: ${format("1e98")} boxes`,
 ]
 
 // Determines when the game "ends"
 function isEndgame() {
-	return player.s.points.gte(new Decimal("1e380"))
+	return player.b.points.gte(new Decimal("1e98"))
 }
 
 
@@ -95,7 +105,8 @@ function backgroundStyle() {
   	if (!player.f.unlocked) ret["background-color"] = "#1e0a1d"
 	else if (!player.c.unlocked) ret["background-color"] = "#0c161c"
 	else if (!player.s.unlocked) ret["background-color"] = "#150c1c"
-	else ret["background-color"] = "#05140b"
+	else if (!player.b.unlocked) ret["background-color"] = "#05140b"
+	ret["background-color"] = "#1d0d00"
 
   	return ret
 }
