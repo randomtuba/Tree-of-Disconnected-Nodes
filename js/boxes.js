@@ -155,8 +155,8 @@ addLayer("b", {
         () => hasMilestone("b",2) && !player.b.boxed[3] ? ["display-text", `<span style="color:red">You are not eligible to gain string cuboids.</span>`] : '',
         () => hasMilestone("b",2) && player.b.boxed[3] && player.s.points.lt("1e880") ? ["display-text", `<span style="color:red">You need ${format("1e880")} strings to generate string cuboids.</span>`] : '',
         () => hasMilestone("b",2) && player.b.boxed[3] && player.s.points.gte("1e880") ? ["display-text", `<span style="color:#00ff00">You are generating ${format(layers.b.cuboidGen(3))} string cuboids per second.</span>`] : '',
-        () => hasMilestone("b",2) ? ["display-text", `You have <h2 style="color: #2ec766; text-shadow: 0px 0px 10px #2ec766">${format(player.b.cuboids[3])}</h2> string cuboids, boosting the multiplier per fluid effect disabled by <h2 style="color: #2ec766; text-shadow: 0px 0px 10px #2ec766">${format(layers.b.cuboidEffect(3))}</h2>x.`] : '',
-        () => hasMilestone("b",2) ? ["display-text", `Each effect disabled multiplies chip cuboids gain by ${format(10)}x.`] : '',
+        () => hasMilestone("b",2) ? ["display-text", `You have <h2 style="color: #2ec766; text-shadow: 0px 0px 10px #2ec766">${format(player.b.cuboids[3])}</h2> string cuboids, boosting the multiplier per chip effect disabled by <h2 style="color: #2ec766; text-shadow: 0px 0px 10px #2ec766">${format(layers.b.cuboidEffect(3))}</h2>x.`] : '',
+        () => hasMilestone("b",2) ? ["display-text", `Each effect disabled multiplies string cuboids gain by ${format(10)}x.`] : '',
         () => hasMilestone("b",2) ? ["clickables",[10,11]] : '',
     ],
     buyables: {
