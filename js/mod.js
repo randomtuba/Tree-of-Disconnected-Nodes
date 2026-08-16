@@ -2,7 +2,7 @@ let modInfo = {
 	name: "Tree of Disconnected Nodes",
 	author: "randomtuba",
 	pointsName: "",
-	modFiles: ["tree.js", "side-layers.js", "matter.js", "fluid.js", "chips.js", "strings.js", "boxes.js"],
+	modFiles: ["tree.js", "side-layers.js", "matter.js", "fluid.js", "chips.js", "strings.js", "boxes.js", "tokens.js"],
 
 	discordName: "tuba's new place",
 	discordLink: "https://discord.gg/HhcavwM5rm",
@@ -106,7 +106,8 @@ function backgroundStyle() {
 	else if (!player.c.unlocked) ret["background-color"] = "#0c161c"
 	else if (!player.s.unlocked) ret["background-color"] = "#150c1c"
 	else if (!player.b.unlocked) ret["background-color"] = "#05140b"
-	else ret["background-color"] = "#1d0d00"
+	else if (!player.t.unlocked) ret["background-color"] = "#1d0d00"
+	else ret["background-color"] = "#181f1b"
 
   	return ret
 }

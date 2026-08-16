@@ -71,7 +71,7 @@ addLayer("b", {
                 if (player.b.stringToggles.includes(false) && player.b.boxed[3] && player.s.points.gte("1e880")) {
                     let falseCount = 0
                     for (let i = 0; i < player.b.stringToggles.length; i++) {
-                        if (player.b.chipToggles[i] === false) falseCount++
+                        if (player.b.stringToggles[i] === false) falseCount++
                     }
                     return Decimal.pow(10,falseCount).mul(buyableEffect("b",12)).mul(buyableEffect("b",22))
                 }
