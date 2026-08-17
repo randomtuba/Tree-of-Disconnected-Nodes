@@ -106,8 +106,8 @@ function backgroundStyle() {
 	else if (!player.c.unlocked) ret["background-color"] = "#0c161c"
 	else if (!player.s.unlocked) ret["background-color"] = "#150c1c"
 	else if (!player.b.unlocked) ret["background-color"] = "#05140b"
-	else if (!player.t.unlocked) ret["background-color"] = "#1d0d00"
-	else ret["background-color"] = "#181f1b"
+	else ret["background-color"] = "#1d0d00"
+	// else ret["background-color"] = "#181f1b"
 
   	return ret
 }
