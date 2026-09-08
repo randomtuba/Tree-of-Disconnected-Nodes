@@ -85,7 +85,7 @@ function getPointGen() {
 	gain = gain.mul(player.b.cuboids[1].pow(10).add(1))
 	gain = gain.mul(player.b.cuboids[2].pow(10).add(1))
 	gain = gain.mul(player.b.cuboids[3].pow(10).add(1))
-	gain = gain.mul(player.t.diceMult.pow(100).add(1))
+	gain = gain.mul(player.t.diceMult.pow(100))
 	return gain
 }
 
@@ -116,7 +116,8 @@ function backgroundStyle() {
 	else if (!player.s.unlocked) ret["background-color"] = "#150c1c"
 	else if (!player.b.unlocked) ret["background-color"] = "#05140b"
 	else if (!player.t.unlocked) ret["background-color"] = "#1d0d00"
-	else ret["background-color"] = "#181f1b"
+	else /* if (!player.k.unlocked) */ ret["background-color"] = "#181f1b"
+	// else ret["background-color"] = "#060924"
 
   	return ret
 }
