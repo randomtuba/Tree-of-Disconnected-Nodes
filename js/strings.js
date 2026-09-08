@@ -23,6 +23,7 @@ addLayer("s", {
     gainMult() {
         mult = new Decimal(1)
         mult = mult.mul(layers.s.stringTypeEffect(1))
+        if (hasMilestone("b",3)) mult = mult.mul(layers.b.boxesEffect(7))
         return mult
     },
     gainExp() {
@@ -44,6 +45,7 @@ addLayer("s", {
                     if (player.s.flavor.includes(2) && player.b.stringToggles[6]) gen = gen.mul(100)
                     if (hasMilestone("b",2)) gen = gen.mul(layers.b.boxesEffect(0))
                     if (player.s.flavor.includes(5)) gen = gen.mul(1e20)
+                    if (hasMilestone("b",3)) gen = gen.pow(layers.b.boxesEffect(8))
                     return gen
                 }
             break;
@@ -58,6 +60,7 @@ addLayer("s", {
                     if (player.s.flavor.includes(2) && player.b.stringToggles[6]) gen = gen.mul(100)
                     if (hasMilestone("b",2)) gen = gen.mul(layers.b.boxesEffect(0))
                     if (player.s.flavor.includes(5)) gen = gen.mul(1e20)
+                    if (hasMilestone("b",3)) gen = gen.pow(layers.b.boxesEffect(8))
                     return gen
                 }
             break;
@@ -72,6 +75,7 @@ addLayer("s", {
                     if (player.s.flavor.includes(2) && player.b.stringToggles[6]) gen = gen.mul(100)
                     if (hasMilestone("b",2)) gen = gen.mul(layers.b.boxesEffect(0))
                     if (player.s.flavor.includes(5)) gen = gen.mul(1e20)
+                    if (hasMilestone("b",3)) gen = gen.pow(layers.b.boxesEffect(8))
                     return gen
                 }
             break;
@@ -86,6 +90,7 @@ addLayer("s", {
                     if (player.s.flavor.includes(2) && player.b.stringToggles[6]) gen = gen.mul(100)
                     if (hasMilestone("b",2)) gen = gen.mul(layers.b.boxesEffect(0))
                     if (player.s.flavor.includes(5)) gen = gen.mul(1e20)
+                    if (hasMilestone("b",3)) gen = gen.pow(layers.b.boxesEffect(8))
                     return gen
                 }
             break;
@@ -100,6 +105,7 @@ addLayer("s", {
                     if (player.s.flavor.includes(2) && player.b.stringToggles[6]) gen = gen.mul(100)
                     if (hasMilestone("b",2)) gen = gen.mul(layers.b.boxesEffect(0))
                     if (player.s.flavor.includes(5)) gen = gen.mul(1e20)
+                    if (hasMilestone("b",3)) gen = gen.pow(layers.b.boxesEffect(8))
                     return gen
                 }
             break;
@@ -252,6 +258,12 @@ addLayer("s", {
             toggles: [
                 ["s","autoDimensionUpgrades"],
             ],
+        },
+        5: {
+            requirementDescription() {return `${format("1e30500")} strings`},
+            effectDescription: "You can activate up to 6 string flavors.",
+            done() { return player.s.points.gte("1e30500") },
+            unlocked() { return player.b.unlocked },
         },
     },
     clickables: {
@@ -485,11 +497,11 @@ addLayer("s", {
                     player.s.flavor.push(1)
                 }
             },
-            canClick() {return player.s.flavor.length < (hasMilestone("s",3) ? 3 : 1) || player.s.flavor.includes(1)},
+            canClick() {return player.s.flavor.length < (hasMilestone("s",3) ? (hasMilestone("s",5) ? 6 : 3) : 1) || player.s.flavor.includes(1)},
             style() {
                 let style = {"width": "75px", "min-height": "75px"}
                 if (player.s.flavor.includes(1)) style["background-color"] = "red"
-                else if (player.s.flavor.length < (hasMilestone("s",3) ? 3 : 1)) style["background-color"] = "#ffaaaa"
+                else if (player.s.flavor.length < (hasMilestone("s",3) ? (hasMilestone("s",5) ? 6 : 3) : 1)) style["background-color"] = "#ffaaaa"
                 return style
             },
         },
@@ -503,11 +515,11 @@ addLayer("s", {
                     player.s.flavor.push(2)
                 }
             },
-            canClick() {return player.s.flavor.length < (hasMilestone("s",3) ? 3 : 1) || player.s.flavor.includes(2)},
+            canClick() {return player.s.flavor.length < (hasMilestone("s",3) ? (hasMilestone("s",5) ? 6 : 3) : 1) || player.s.flavor.includes(2)},
             style() {
                 let style = {"width": "75px", "min-height": "75px"}
                 if (player.s.flavor.includes(2)) style["background-color"] = "blue"
-                else if (player.s.flavor.length < (hasMilestone("s",3) ? 3 : 1)) style["background-color"] = "#aaaaff"
+                else if (player.s.flavor.length < (hasMilestone("s",3) ? (hasMilestone("s",5) ? 6 : 3) : 1)) style["background-color"] = "#aaaaff"
                 return style
             },
         },
@@ -521,11 +533,11 @@ addLayer("s", {
                     player.s.flavor.push(3)
                 }
             },
-            canClick() {return player.s.flavor.length < (hasMilestone("s",3) ? 3 : 1) || player.s.flavor.includes(3)},
+            canClick() {return player.s.flavor.length < (hasMilestone("s",3) ? (hasMilestone("s",5) ? 6 : 3) : 1) || player.s.flavor.includes(3)},
             style() {
                 let style = {"width": "75px", "min-height": "75px"}
                 if (player.s.flavor.includes(3)) style["background-color"] = "#00ff00"
-                else if (player.s.flavor.length < (hasMilestone("s",3) ? 3 : 1)) style["background-color"] = "#aaffaa"
+                else if (player.s.flavor.length < (hasMilestone("s",3) ? (hasMilestone("s",5) ? 6 : 3) : 1)) style["background-color"] = "#aaffaa"
                 return style
             },
             unlocked() {return hasMilestone("s",2)},
@@ -540,11 +552,11 @@ addLayer("s", {
                     player.s.flavor.push(4)
                 }
             },
-            canClick() {return player.s.flavor.length < 3 || player.s.flavor.includes(4)},
+            canClick() {return player.s.flavor.length < (hasMilestone("s",5) ? 6 : 3) || player.s.flavor.includes(4)},
             style() {
                 let style = {"width": "75px", "min-height": "75px"}
                 if (player.s.flavor.includes(4)) style["background-color"] = "#00ffff"
-                else if (player.s.flavor.length < 3) style["background-color"] = "#aaffff"
+                else if (player.s.flavor.length < (hasMilestone("s",5) ? 6 : 3)) style["background-color"] = "#aaffff"
                 return style
             },
             unlocked() {return getBuyableAmount("b",23).gte(1)},
@@ -559,11 +571,11 @@ addLayer("s", {
                     player.s.flavor.push(5)
                 }
             },
-            canClick() {return player.s.flavor.length < 3 || player.s.flavor.includes(5)},
+            canClick() {return player.s.flavor.length < (hasMilestone("s",5) ? 6 : 3) || player.s.flavor.includes(5)},
             style() {
                 let style = {"width": "75px", "min-height": "75px"}
                 if (player.s.flavor.includes(5)) style["background-color"] = "#ffff00"
-                else if (player.s.flavor.length < 3) style["background-color"] = "#ffffaa"
+                else if (player.s.flavor.length < (hasMilestone("s",5) ? 6 : 3)) style["background-color"] = "#ffffaa"
                 return style
             },
             unlocked() {return getBuyableAmount("b",23).gte(2)},
@@ -578,11 +590,11 @@ addLayer("s", {
                     player.s.flavor.push(6)
                 }
             },
-            canClick() {return player.s.flavor.length < 3 || player.s.flavor.includes(6)},
+            canClick() {return player.s.flavor.length < (hasMilestone("s",5) ? 6 : 3) || player.s.flavor.includes(6)},
             style() {
                 let style = {"width": "75px", "min-height": "75px"}
                 if (player.s.flavor.includes(6)) style["background-color"] = "#ff00ff"
-                else if (player.s.flavor.length < 3) style["background-color"] = "#ffaaff"
+                else if (player.s.flavor.length < (hasMilestone("s",5) ? 6 : 3)) style["background-color"] = "#ffaaff"
                 return style
             },
             unlocked() {return getBuyableAmount("b",23).gte(3)},

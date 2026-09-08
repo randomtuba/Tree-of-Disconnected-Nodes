@@ -33,6 +33,13 @@ addLayer("ach", {
             style() {const style = {}; if (hasAchievement(this.layer,this.id)) style["background-color"] = "#ff56f7"; return style},
             unlocked() {return player.s.unlocked},
         },
+        13: {
+            name: "Outer space vacuum",
+            done() {return player.m.points.gte("1e4000") && player.b.boxed[0] && !player.b.matterToggles[6]},
+            tooltip() {return `Generate matter cuboids with the first slider disabled.`},
+            style() {const style = {}; if (hasAchievement(this.layer,this.id)) style["background-color"] = "#ff56f7"; return style},
+            unlocked() {return player.t.unlocked},
+        },
         21: {
             name: "Skynet",
             done() {return player.f.singularities.gte(1e9)},
@@ -45,6 +52,13 @@ addLayer("ach", {
             tooltip() {return `Reach ${format(1e21)} Planck points.`},
             style() {const style = {}; if (hasAchievement(this.layer,this.id)) style["background-color"] = "#6cc9fe"; return style},
             unlocked() {return player.s.unlocked},
+        },
+        23: {
+            name: "Pocket-size anomaly",
+            done() {return player.f.infinityFills[2].gte(1e150)},
+            tooltip() {return `Store ${format(1e150)} singularities.`},
+            style() {const style = {}; if (hasAchievement(this.layer,this.id)) style["background-color"] = "#6cc9fe"; return style},
+            unlocked() {return player.t.unlocked},
         },
         31: {
             name: "Conway's weeds",
@@ -60,6 +74,13 @@ addLayer("ach", {
             style() {const style = {}; if (hasAchievement(this.layer,this.id)) style["background-color"] = "#8c51d8"; return style},
             unlocked() {return player.s.unlocked},
         },
+        33: {
+            name: "Boolean algebra",
+            done() {return getBuyableAmount("tr",11).gt(0) && getBuyableAmount("tr",12).gt(0) && getBuyableAmount("tr",13).gt(0) && getBuyableAmount("tr",21).gt(0) && getBuyableAmount("tr",22).gt(0) && getBuyableAmount("tr",23).gt(0)},
+            tooltip() {return `Have 1 purchase of each transistor buyable.`},
+            style() {const style = {}; if (hasAchievement(this.layer,this.id)) style["background-color"] = "#8c51d8"; return style},
+            unlocked() {return player.t.unlocked},
+        },
         41: {
             name: "Extrusion",
             done() {return player.s.dimensionUpgrades[3].gte(3)},
@@ -74,6 +95,13 @@ addLayer("ach", {
             style() {const style = {}; if (hasAchievement(this.layer,this.id)) style["background-color"] = "#2ec766"; return style},
             unlocked() {return player.s.unlocked}
         },
+        43: {
+            name: "???",
+            done() {return false},
+            tooltip() {return `???`},
+            style() {const style = {}; if (hasAchievement(this.layer,this.id)) style["background-color"] = "#2ec766"; return style},
+            unlocked() {return player.t.unlocked},
+        },
         51: {
             name: "Pandora's Box",
             done() {return getBuyableAmount("b",13).gte(3)},
@@ -87,6 +115,34 @@ addLayer("ach", {
             tooltip() {return `Generate fluid cuboids with all fluid mechanic effects disabled.`},
             style() {const style = {}; if (hasAchievement(this.layer,this.id)) style["background-color"] = "#e56b00"; return style},
             unlocked() {return player.b.unlocked}
+        },
+        53: {
+            name: "???",
+            done() {return false},
+            tooltip() {return `???`},
+            style() {const style = {}; if (hasAchievement(this.layer,this.id)) style["background-color"] = "#e56b00"; return style},
+            unlocked() {return player.t.unlocked},
+        },
+        61: {
+            name: "Gamblecore",
+            done() {return player.t.streak >= 5},
+            tooltip() {return `Get a streak of 5.`},
+            style() {const style = {}; if (hasAchievement(this.layer,this.id)) style["background-color"] = "#9cd3b0"; return style},
+            unlocked() {return player.t.unlocked},
+        },
+        62: {
+            name: "Read it and weep",
+            done() {return layers.t.checkDice() == "Yahtzee"},
+            tooltip() {return `Roll a Yahtzee.`},
+            style() {const style = {}; if (hasAchievement(this.layer,this.id)) style["background-color"] = "#9cd3b0"; return style},
+            unlocked() {return player.t.unlocked},
+        },
+        63: {
+            name: "???",
+            done() {return false},
+            tooltip() {return `???`},
+            style() {const style = {}; if (hasAchievement(this.layer,this.id)) style["background-color"] = "#9cd3b0"; return style},
+            unlocked() {return player.t.unlocked},
         },
     },
 })
@@ -213,6 +269,24 @@ addLayer("help", {
                 Throughout our lives, we are constantly placed within various boxes, whether by ourselves or by others. But to be trapped in a literal box rather than a metaphorical one was quite stifling. I placed my hand against the wall, expecting to feel something akin to solid concrete, but was met with a dark, viscous liquid instead. I was shockingly able to pass through!<br><br>
                 While passing through the wall was more suffocating than anything I had experienced before, I felt something in my chest akin to euphoria, whether that was the fleeting adrenaline rush of escapism or the joy of escaping predetermined boundaries.<br><br>
                 No box fits all, and this enormous box certainly never fit me. When we realize the walls and ceilings around us, we can escape our boxes and find personal satisfaction that we never had before.`],
+            ],
+        },
+        "Tokens": {
+            unlocked() {return player.t.unlocked},
+            buttonStyle: {
+                "border-color": "#9cd3b0",
+            },
+            content: [
+                ["display-text", () => `When I emerged from the wall, the bright light and new atmospheric pressure struck my body. I immediately fell and writhed on the ground from the intense burst of new stimuli. After several minutes, I got myself on two feet again to view my new surroundings.<br><br>
+                It was a simple biome: grassy hills, distant oak trees, and a sandy beach. However, the longer I stayed in this environment, the more I realized that something was deeply wrong here.<br><br>
+                Everywhere I looked, the colors were dull. The grass was a muddled green and the sky was a murky blue. The trees didn't stand straight up; instead, they were slightly askew. The beach seemed nice at first, but the sand was too pale and the water was too uninviting.<br><br>
+                My distaste for this place soon grew to become disgust, and then morphed into an all-pervasive sadness. The plastic forest was too unfulfilling to hike in. The grass was too sickly to frolick in. The sky was too dim to observe the stars.<br><br>
+                A question began to float around in my mind: would it be better to return to the ocean?<br><br>
+                No, I couldn't. The ocean was significantly worse. After enough periods of pondering, I recognized the problem with my trail of thought. The ocean did not disguise its misery; meanwhile, the forest did.<br><br>
+                Have you ever noticed something deeply wrong in your life that makes everything else dull? Something that slowly eats away at you that becomes progressively more difficult to ignore?<br><br>
+                All I could think about after a while was how to get out of here. The very moment I escaped my previous prison, I had entered a new one.<br><br>
+                It feels like I'm not in control of my life. We're all born in random locations with random characteristics. The cruel game of life dictates that we must deal with whatever we have, no matter the unfairness.<br><br>
+                If I keep moving forward, perhaps I'll have more control of the dice.`],
             ],
         },
     },

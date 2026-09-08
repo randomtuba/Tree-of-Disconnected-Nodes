@@ -9,8 +9,8 @@ addLayer("f", {
         vapor: new Decimal(0),
         barProgress: [0,0],
         singularities: new Decimal(0),
-        infinity: [false,false],
-        infinityFills: [new Decimal(0),new Decimal(0)],
+        infinity: [false,false,false],
+        infinityFills: [new Decimal(0),new Decimal(0),new Decimal(0)],
         planckPoints: new Decimal(0),
         fluidPerSecond: new Decimal(0),
     }},
@@ -69,11 +69,14 @@ addLayer("f", {
         return eff
     },
     infinityFillEffect(x) {
-        if (x == 1) {
+        if (x == 1) { // fluid infinity
             return player.b.fluidToggles[7] ? player.f.infinityFills[0].pow(0.1).add(1) : new Decimal(1)
         }
-        if (x == 2) {
+        if (x == 2) { // vapor infinity
             return player.b.fluidToggles[8] ? player.f.infinityFills[1].pow(0.2).add(1) : new Decimal(1)
+        }
+        if (x == 3) { // singular infinity
+            return player.f.infinityFills[2].pow(0.01).add(1)
         }
     },
     fillSpeed(x) {
@@ -101,7 +104,8 @@ addLayer("f", {
         player.f.vapor = new Decimal(0)
         player.f.barProgress = [0,0]
         player.f.singularities = new Decimal(0)
-        player.f.infinityFills = [new Decimal(0),new Decimal(0)]
+        player.f.infinityFills[0] = new Decimal(0)
+        player.f.infinityFills[1] = new Decimal(0)
         player.f.planckPoints = new Decimal(0)
     },
     automate() {
@@ -206,7 +210,8 @@ addLayer("f", {
                 if (!hasMilestone("f",3)) player.f.infinityFills[0] = player.f.infinityFills[0].add(layers.f.fillSpeed(1).mul(diff))
                 player.f.fluidPerSecond = new Decimal(0)
             }
-            if (hasMilestone("f",0)) player.f.singularities = player.f.singularities.add(layers.f.singularityGen().mul(diff))
+            if (hasMilestone("f",0) && !player.f.infinity[2]) player.f.singularities = player.f.singularities.add(layers.f.singularityGen().mul(diff))
+            if (hasMilestone("f",0) && player.f.infinity[2]) player.f.infinityFills[2] = player.f.infinityFills[2].add(layers.f.singularityGen().mul(diff))
             if (hasMilestone("f",1)) player.f.planckPoints = player.f.planckPoints.add(layers.f.planckPointsGen().mul(diff))
             if (hasMilestone("f",3)) {
                 player.f.infinityFills[0] = player.f.infinityFills[0].add(layers.f.fillSpeed(1).mul(diff))
@@ -240,6 +245,8 @@ addLayer("f", {
         () => hasMilestone("f",0) ? ["display-text", `You have <h2 style="color: #000000; text-shadow: 0px 0px 10px #ffffff">${format(player.f.singularities)}</h2> singularities, multiplying fluid gained per fill by <h2 style="color: #000000; text-shadow: 0px 0px 10px #ffffff">${format(layers.f.singularityEffect())}</h2>x. (${format(layers.f.singularityGen())}/sec)`] : '',
         () => hasMilestone("f",0) ? ["display-text", `You gain more singularities based on Pressure and Pressure<sup>2</sup> purchases.<br>Enabling Fluid Infinity allows you to store fills of the first bar while halting fluid production.`] : '',
         () => hasMilestone("f",2) ? ["display-text", `Enabling Vapor Infinity allows you to store fills of the second bar while halting vapor production.`] : '',
+        () => hasMilestone("f",7) ? ["display-text", `Enabling Singular Infinity allows you to store singularities while halting singularity production.`] : '',
+        () => hasMilestone("f",7) ? ["display-text", `<span style="color:yellow">You have ${format(player.f.infinityFills[2])} stored singularites, multiplying the dice multiplier gain per dice roll by ${format(layers.f.infinityFillEffect(3))}x.</span>`] : '',
         () => hasMilestone("f",0) ? "clickables" : '',
         "blank",
         () => hasMilestone("f",1) ? ["display-text", `You have <h2 style="color: #ff5900; text-shadow: 0px 0px 10px #ff5900">${format(player.f.planckPoints)}</h2> Planck points. (${format(layers.f.planckPointsGen())}/sec)`] : '',
@@ -407,6 +414,12 @@ addLayer("f", {
                 ["f","autoPlanckBuyables"],
             ],
         },
+        7: {
+            requirementDescription() {return `${formatWhole(308)} Pressure purchases`},
+            effectDescription: "Unlock Singular Infinity.",
+            done() { return getBuyableAmount("f",11).gte(308) },
+            unlocked() { return player.t.unlocked },
+        },
     },
     clickables: {
         11: {
@@ -445,6 +458,24 @@ addLayer("f", {
                 return style
             },
             unlocked() {return hasMilestone("f",2)}
+        },
+        13: {
+            display() {return `Singular Infinity: ${player.f.infinity[2] ? `Enabled` : `Disabled`}`},
+            onClick() {
+                player.f.infinity[2] = !player.f.infinity[2]
+            },
+            canClick() {return true},
+            style() {
+                const style = {};
+                style["width"] = "100px"
+                style["min-height"] = "100px"
+                if (this.canClick()) {
+                    style["background-color"] = "black"
+                    style["color"] = "white"
+                }
+                return style
+            },
+            unlocked() {return hasMilestone("f",7)}
         },
     },
     bars: {

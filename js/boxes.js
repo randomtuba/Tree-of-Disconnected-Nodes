@@ -27,10 +27,13 @@ addLayer("b", {
         mult = player.b.cuboids[0].pow(0.5)
         mult = mult.mul(buyableEffect("b",11))
         mult = mult.mul(buyableEffect("b",21))
+        mult = mult.mul(layers.t.tokensEffect())
         return mult
     },
     gainExp() {
-        return new Decimal(1)
+        let exp = new Decimal(1)
+        exp = exp.mul(layers.tr.transistorsEffect())
+        return exp
     },
     generation() {
         return this.gainMult().pow(this.gainExp())
@@ -92,6 +95,25 @@ addLayer("b", {
         if (x == 4) return player.b.points.add(1).log10().add(1).log10().mul(10).add(1)
         if (x == 5) return player.b.points.add(1).log10().add(1).log10().div(7).add(1)
         if (x == 6) return player.b.points.pow(2.5).add(1)
+        if (x == 7) return player.b.points.pow(3).add(1)
+        if (x == 8) return player.b.points.add(1).log10().add(1).log10().div(15).add(1)
+    },
+    automate() {
+        let a = new Decimal(0)
+        let b = new Decimal(0)
+        let c = new Decimal(0)
+        if (player.b.autoBoxBuyables && hasMilestone("b",3)) {
+            setBuyableAmount("b", 12, tmp.b.buyables[12].canAfford ? player.b.points.div(10000).log(50).add(1).floor() : getBuyableAmount("b",12))
+
+            a = Decimal.log10(10)
+            b = Decimal.log10(1e6)
+            c = Decimal.log10(1e18).sub(player.b.points.max(1).log10())
+            setBuyableAmount("b", 21, tmp.b.buyables[21].canAfford ? b.mul(-1).add(Decimal.pow(b,2).sub(Decimal.mul(4,a.mul(c))).max(0).sqrt()).div(a.mul(2)).add(1).floor() : getBuyableAmount("b",21))
+            a = Decimal.log10(10)
+            b = Decimal.log10(1e4)
+            c = Decimal.log10(1e24).sub(player.b.points.max(1).log10())
+            setBuyableAmount("b", 22, tmp.b.buyables[22].canAfford ? b.mul(-1).add(Decimal.pow(b,2).sub(Decimal.mul(4,a.mul(c))).max(0).sqrt()).div(a.mul(2)).add(1).floor() : getBuyableAmount("b",22))
+        }
     },
     update(diff) {
         if (!player[this.layer].unlocked && player.s.points.gte("1e380")) player[this.layer].unlocked = true
@@ -114,6 +136,8 @@ addLayer("b", {
         () => getBuyableAmount("b",13).gte(4) ? ["display-text", `<span style="color:yellow">They are also powering the singularities effect ^${format(layers.b.boxesEffect(4))}.</span>`] : '',
         () => getBuyableAmount("b",13).gte(5) ? ["display-text", `<span style="color:yellow">They are also powering base chips per click ^${format(layers.b.boxesEffect(5))}.</span>`] : '',
         () => getBuyableAmount("b",13).gte(6) ? ["display-text", `<span style="color:yellow">They are also multiplying the golden tile multiplier start and increase by ${format(layers.b.boxesEffect(6))}x.</span>`] : '',
+        () => hasMilestone("b",3) ? ["display-text", `<span style="color:yellow">They are also multiplying strings gain by ${format(layers.b.boxesEffect(7))}x.</span>`] : '',
+        () => hasMilestone("b",3) ? ["display-text", `<span style="color:yellow">They are also powering the gain of all string types ^${format(layers.b.boxesEffect(8))}.</span>`] : '',
         "blank",
         "buyables",
         ["display-text", () => `Use the clickables to enable/disable the effects of different mechanics in each node.`],
@@ -163,8 +187,9 @@ addLayer("b", {
         11: {
             title: "<h3>Packing Peanuts</h3>",
             cost(x) { return new Decimal(1000).mul(Decimal.pow(10, x)) },
-            display() { return `<span style="font-size:12px;">Double boxes generation.<br>Times Bought: ${formatWhole(getBuyableAmount(this.layer, this.id))}<br>Cost: ${format(this.cost())} boxes<br>Effect: ${format(this.effect())}x boxes/second</span>` },
+            display() { return `<span style="font-size:12px;">Double boxes generation.<br>Times Bought: ${formatWhole(getBuyableAmount(this.layer, this.id))}/200<br>Cost: ${format(this.cost())} boxes<br>Effect: ${format(this.effect())}x boxes/second</span>` },
             canAfford() { return player[this.layer].points.gte(this.cost()) },
+            purchaseLimit: 200,
             buy() {
                 player[this.layer].points = player[this.layer].points.sub(this.cost())
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
@@ -245,9 +270,18 @@ addLayer("b", {
         },
         2: {
             requirementDescription() {return `${format(2e9)} chip cuboids`},
-            effectDescription: "Unlock string cuboids and 3 new box buyables, and improve the first boxes effect.",
+            effectDescription: "Unlock string cuboids and 3 new buyables, and improve the first boxes effect.",
             done() { return player.b.cuboids[2].gte(2e9) },
             unlocked() { return hasMilestone("b",1) },
+        },
+        3: {
+            requirementDescription() {return `${format(1e112)} string cuboids`},
+            effectDescription: "Autobuy box buyables without consuming boxes and unlock 2 new boosts that boxes give.",
+            done() { return player.b.cuboids[3].gte(1e112) },
+            unlocked() { return player.t.unlocked },
+            toggles: [
+                ["b","autoBoxBuyables"],
+            ],
         },
     },
     clickables: {

@@ -154,6 +154,16 @@ addLayer("c", {
         "blank",
         ["display-text", () => `You have ${format(player.c.bytes)} bytes. (${format(layers.c.bytesGen())}/sec)`],
         "buyables",
+        "blank",
+        () => hasMilestone("c",7) ? ["layer-proxy",["tr",["main-display"]]] : '',
+        () => hasMilestone("c",7) ? ["display-text", `Your transistors are powering boxes and tokens gain ^<h2 style="color: #d851c6; text-shadow: 0px 0px 10px #d851c6">${regularFormat(layers.tr.transistorsEffect(),3)}</h2>.`] : '',
+        () => hasMilestone("c",7) ? "blank" : '',
+        () => hasMilestone("c",7) ? ["display-text", `Time remaining: ${format(player.tr.timer)}s`] : '',
+        () => hasMilestone("c",7) ? "blank" : '',
+        () => hasMilestone("c",7) ? ["layer-proxy",["tr",["grid"]]] : '',
+        () => hasMilestone("c",7) ? "blank" : '',
+        () => hasMilestone("c",7) ? ["display-text", `You have ${format(player.tr.semiconduction)} semiconduction. (${format(layers.tr.semiconductionGen())}/sec)`] : '',
+        () => hasMilestone("c",7) ? ["layer-proxy",["tr",["buyables"]]] : '',
     ],
     buyables: {
         11: {
@@ -315,6 +325,12 @@ addLayer("c", {
                 ["c","autoWindfall"],
             ],
         },
+        7: {
+            requirementDescription() {return `${format("1e2310")} chips`},
+            effectDescription: "Unlock transistors.",
+            done() { return player.c.points.gte("1e2310") },
+            unlocked() { return player.t.unlocked },
+        },
     },
     clickables: {
         11: {display: `<h2>-</h2>`,onClick() {player.c.clickRadius--},canClick() {return player.c.clickRadius > 1},style() {return {"width": "75px", "min-height": "75px"}},},
@@ -413,6 +429,168 @@ addLayer("c", {
             if (data == 2) style["background-color"] = "#ffd900"
             if (data == 3) style["background-color"] = "#003dd6"
             if (data == 4) style["background-color"] = "#00ff77"
+            return style
+        }
+    }
+})
+
+addLayer("tr", {
+    // general stuff
+    name: "transistors",
+    symbol: "TR",
+    position: 3, // horizontal position
+    startData() { return {
+        unlocked: false,
+		points: new Decimal(0),
+        timer: 5,
+        semiconduction: new Decimal(0),
+    }},
+    color: "#d851c6",
+    requires: new Decimal("1e2310"),
+    resource: "transistors",
+    baseResource: "chips", // resource required to unlock
+    baseAmount() {return player.c.points},
+    type: "none",
+    row: 1, // 0 is first row
+    layerShown(){return false},
+
+    // calculations
+    gainMult() {
+        mult = new Decimal(1)
+        mult = mult.mul(buyableEffect("tr",12))
+        mult = mult.mul(buyableEffect("tr",22))
+        return mult
+    },
+    gainExp() {
+        let exp = new Decimal(1)
+        return exp
+    },
+    generation() {
+        return this.gainMult().pow(this.gainExp())
+    },
+    semiconductionGen() {
+        let gen = player.tr.points
+        gen = gen.mul(buyableEffect("tr",11))
+        gen = gen.mul(buyableEffect("tr",21))
+        return gen
+    },
+    transistorsEffect() {
+        return player.tr.points.add(1).log10().add(1).log10().div(25).add(1)
+    },
+    numberToGridID(num) {
+        let x = Math.floor(num) % 5 == 0 ? 5 : Math.floor(num) % 5
+        let y = Math.floor(1 + (Math.floor(num - 1) / 5))
+        return y + (x >= 10 ? "" : "0") + x
+    },
+    update(diff) {
+        if (!player[this.layer].unlocked && player.c.points.gte("1e2310")) player[this.layer].unlocked = true
+        if (player[this.layer].unlocked) {
+            player.tr.timer -= diff
+            if (player.tr.timer <= 0) {
+                player.tr.timer = buyableEffect("tr",13)
+                let selected = layers.tr.numberToGridID((Math.random() * 25) + 1)
+                if (player.tr.grid[selected] == 0) player.tr.grid[selected] = 1
+            }
+            player.tr.semiconduction = player.tr.semiconduction.add(layers.tr.semiconductionGen().mul(diff))
+        }
+    },
+    buyables: {
+        11: {
+            title: "<h3>AND Gate</h3>",
+            cost(x) { return new Decimal(200).mul(Decimal.pow(4, x)).mul(Decimal.pow(1.05, x.pow(2))) },
+            display() { return `<span style="font-size:12px;">Double semiconduction generation.<br>Times Bought: ${formatWhole(getBuyableAmount(this.layer, this.id))}<br>Cost: ${format(this.cost())} semiconduction<br>Effect: ${format(this.effect())}x semiconduction/second</span>` },
+            canAfford() { return player[this.layer].semiconduction.gte(this.cost()) },
+            buy() {
+                player[this.layer].semiconduction = player[this.layer].semiconduction.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect() {return Decimal.pow(2, getBuyableAmount(this.layer, this.id))},
+        },
+        12: {
+            title: "<h3>OR Gate</h3>",
+            cost(x) { return new Decimal(1000).mul(Decimal.pow(5, x)).mul(Decimal.pow(1.1, x.pow(2))) },
+            display() { return `<span style="font-size:12px;">Triple transistors gained per tile click.<br>Times Bought: ${formatWhole(getBuyableAmount(this.layer, this.id))}<br>Cost: ${format(this.cost())} semiconduction<br>Effect: ${format(this.effect())}x transistors/click</span>` },
+            canAfford() { return player[this.layer].semiconduction.gte(this.cost()) },
+            buy() {
+                player[this.layer].semiconduction = player[this.layer].semiconduction.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect() {return Decimal.pow(3, getBuyableAmount(this.layer, this.id))},
+        },
+        13: {
+            title: "<h3>XOR Gate</h3>",
+            cost(x) { return new Decimal(5000).mul(Decimal.pow(5, x)).mul(Decimal.pow(1.2, x.pow(2))) },
+            display() { return `<span style="font-size:12px;">Divide the cooldown for tile spawning by /1.35.<br>Times Bought: ${formatWhole(getBuyableAmount(this.layer, this.id))}/13<br>Cost: ${format(this.cost())} semiconduction<br>Effect: Cooldown is ${format(this.effect())}s</span>` },
+            canAfford() { return player[this.layer].semiconduction.gte(this.cost()) },
+            purchaseLimit: 13,
+            buy() {
+                player[this.layer].semiconduction = player[this.layer].semiconduction.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect() {return Decimal.div(5, Decimal.pow(1.35, getBuyableAmount(this.layer, this.id))).toNumber()},
+        },
+        21: {
+            title: "<h3>NAND Gate</h3>",
+            cost(x) { return new Decimal(10000).mul(Decimal.pow(100, x)).mul(Decimal.pow(3, x.pow(2))) },
+            display() { return `<span style="font-size:12px;">Multiply semiconduction generation based on tokens.<br>Times Bought: ${formatWhole(getBuyableAmount(this.layer, this.id))}<br>Cost: ${format(this.cost())} semiconduction<br>Mult per Purchase: ${format(this.tokensEffect())}x<br>Effect: ${format(this.effect())}x semiconduction/second</span>` },
+            canAfford() { return player[this.layer].semiconduction.gte(this.cost()) },
+            buy() {
+                player[this.layer].semiconduction = player[this.layer].semiconduction.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            tokensEffect() {return player.t.points.add(1).log10().add(1).log10().add(1)},
+            effect() {return Decimal.pow(this.tokensEffect(), getBuyableAmount(this.layer, this.id))},
+        },
+        22: {
+            title: "<h3>NOR Gate</h3>",
+            cost(x) { return new Decimal(1e6).mul(Decimal.pow(200, x)).mul(Decimal.pow(4, x.pow(2))) },
+            display() { return `<span style="font-size:12px;">Multiply transistor gain based on chips.<br>Times Bought: ${formatWhole(getBuyableAmount(this.layer, this.id))}<br>Cost: ${format(this.cost())} semiconduction<br>Mult per Purchase: ${format(this.chipsEffect())}x<br>Effect: ${format(this.effect())}x transistors/click</span>` },
+            canAfford() { return player[this.layer].semiconduction.gte(this.cost()) },
+            buy() {
+                player[this.layer].semiconduction = player[this.layer].semiconduction.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            chipsEffect() {return player.c.points.add(1).log10().add(1).log10().add(1)},
+            effect() {return Decimal.pow(this.chipsEffect(), getBuyableAmount(this.layer, this.id))},
+        },
+        23: {
+            title: "<h3>XNOR Gate</h3>",
+            cost(x) { return new Decimal(1e7).mul(Decimal.pow(1000, x)).mul(Decimal.pow(2, x.pow(2))) },
+            display() { return `<span style="font-size:12px;">Multiply dice multiplier gained per dice roll by 10.<br>Times Bought: ${formatWhole(getBuyableAmount(this.layer, this.id))}<br>Cost: ${format(this.cost())} semiconduction<br>Effect: ${format(this.effect())}x dice multiplier gain</span>` },
+            canAfford() { return player[this.layer].semiconduction.gte(this.cost()) },
+            buy() {
+                player[this.layer].semiconduction = player[this.layer].semiconduction.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect() {return Decimal.pow(10, getBuyableAmount(this.layer, this.id))},
+        },
+    },
+    grid: {
+        rows: 5,
+        cols: 5,
+        getStartData(id) {
+            return 0
+        },
+        getUnlocked(id) { // Default
+            return true
+        },
+        getCanClick(data, id) {
+            return true
+        },
+        onClick(data, id) {
+            if (data == 1) {
+                player[this.layer].grid[id] = 0
+                player.tr.points = player.tr.points.add(layers.tr.generation())
+            }
+            if (data < 0) {
+                data == 0
+            }
+        },
+        getStyle(data, id) {
+            const style = {}
+            style["width"] = "70px"
+            style["max-height"] = "70px"
+            if (data == 0) style["background-color"] = "#2c1128"
             return style
         }
     }

@@ -30,6 +30,7 @@ addLayer("m", {
     gainMult() {
         mult = new Decimal(1)
         for (let i = 1; i < 7; i++) mult = mult.mul(layers.m.powerMult(i))
+        mult = mult.mul(layers.t.tokensEffect())
         return mult
     },
     gainExp() {
@@ -48,6 +49,7 @@ addLayer("m", {
         let gen = Decimal.pow(2, player[this.layer].multiplier[x]).mul(player[this.layer].multiplier[x])
         gen = gen.mul(layers.m.particleEff("proton",1))
         gen = gen.mul(layers.f.fluidEffect())
+        gen = gen.mul(buyableEffect("m",11))
         return gen
     },
     multiplierCost(x) {
@@ -63,6 +65,7 @@ addLayer("m", {
                     if (hasMilestone("m",3) && player.m.slider[0] == 0.5) gen = Decimal.pow(16, layers.m.particleEff("gluon"))
                     gen = gen.div(layers.m.particleEff("electron",2))
                     gen = gen.mul(layers.f.vaporEffect())
+                    gen = gen.mul(buyableEffect("m",12))
                     return gen
                 } else return new Decimal(0)
             break
@@ -73,6 +76,7 @@ addLayer("m", {
                     gen = gen.div(layers.m.particleEff("proton",2))
                     gen = gen.mul(layers.m.particleEff("tau",1))
                     gen = gen.mul(layers.f.vaporEffect())
+                    gen = gen.mul(buyableEffect("m",12))
                     return gen
                 } else return new Decimal(0)
             break
@@ -82,6 +86,7 @@ addLayer("m", {
                     if (hasMilestone("m",4) && player.m.slider[1] == 0) gen = Decimal.pow(81, layers.m.particleEff("photon"))
                     gen = gen.div(layers.m.particleEff("tau",2))
                     gen = gen.mul(layers.f.vaporEffect())
+                    gen = gen.mul(buyableEffect("m",12))
                     return gen
                 } else return new Decimal(0)
             break
@@ -91,6 +96,7 @@ addLayer("m", {
                     if (hasMilestone("m",4) && player.m.slider[1] == 0) gen = Decimal.pow(81, layers.m.particleEff("photon"))
                     gen = gen.div(layers.m.particleEff("muon",2))
                     gen = gen.mul(layers.f.vaporEffect())
+                    gen = gen.mul(buyableEffect("m",12))
                     return gen
                 } else return new Decimal(0)
             break
@@ -102,6 +108,7 @@ addLayer("m", {
                     else if (trueSlider < 0.4) gen = Decimal.sub(50, 50 * (1 - (trueSlider / 0.4)))
                     else if (trueSlider > 0.6) gen = Decimal.sub(50, 50 * ((trueSlider - 0.6) / 0.4))
                     gen = gen.mul(layers.f.vaporEffect())
+                    gen = gen.mul(buyableEffect("m",12))
                     return gen
                 } else return new Decimal(0)
             break
@@ -189,7 +196,6 @@ addLayer("m", {
         "milestones",
         "main-display",
         ["display-text", () => `You are getting ${format(layers.m.generation())} matter per second.`],
-        "buyables",
         "blank",
         ["display-text", () => `You have <h2 style="color: #ff56f7; text-shadow: 0px 0px 10px #ff56f7">${formatWhole(player.m.multiplier[1])}</h2> Tier 1 Matter Multipliers.<br>You have <h2 style="color: #ff56f7; text-shadow: 0px 0px 10px #ff56f7">${format(player.m.power[1])}</h2> Tier 1 power. (${format(layers.m.powerGen(1))}/sec)<br>(Multiplier: ${format(layers.m.powerMult(1))}x)`],
         ["clickables", [1]],
@@ -209,6 +215,8 @@ addLayer("m", {
         () => player.m.multiplier[5].gt(0) ? ["display-text", `You have <h2 style="color: #ff56f7; text-shadow: 0px 0px 10px #ff56f7">${formatWhole(player.m.multiplier[6])}</h2> Tier 6 Matter Multipliers.<br>You have <h2 style="color: #ff56f7; text-shadow: 0px 0px 10px #ff56f7">${format(player.m.power[6])}</h2> Tier 6 power. (${format(layers.m.powerGen(6))}/sec)<br>(Multiplier: ${format(layers.m.powerMult(6))}x)`] : '',
         () => player.m.multiplier[5].gt(0) ? ["clickables", [6]] : '',
         "blank",
+        () => hasMilestone("m",6) ? "buyables" : '',
+        () => hasMilestone("m",6) ? "blank" : '',
         () => hasMilestone("m",0) ? ["bar","slider1"] : '',
         () => hasMilestone("m",0) ? ["clickables",[7]] : '',
         () => hasMilestone("m",0) ? ["display-text", `<span style="color: #72e0ff">You have ${format(player.m.particles.protons)} protons, multiplying gain of Matter Multiplier powers by ${format(layers.m.particleEff("proton",1))}x<br>and dividing electron gain by /${format(layers.m.particleEff("proton",2))}.</span>`] : '',
@@ -234,6 +242,41 @@ addLayer("m", {
         "blank",
         "blank",
     ],
+    buyables: {
+        11: {
+            title: "<h3>Spacetime Compression</h3>",
+            cost(x) { return new Decimal("1e125000").mul(Decimal.pow("1e1000", x)).mul(Decimal.pow(1e200, x.pow(2))) },
+            display() { return `<span style="font-size:12px;">Multiply gain of Matter Multiplier powers by 10,000.<br>Times Bought: ${formatWhole(getBuyableAmount(this.layer, this.id))}<br>Cost: ${format(this.cost())} matter<br>Effect: ${format(this.effect())}x Matter Multiplier powers</span>` },
+            canAfford() { return player[this.layer].points.gte(this.cost()) },
+            buy() {
+                player[this.layer].points = player[this.layer].points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect() {return Decimal.pow(10000, getBuyableAmount(this.layer, this.id))},
+        },
+        12: {
+            title: "<h3>Particle Acceleration</h3>",
+            cost(x) { return new Decimal("1e127500").mul(Decimal.pow("1e2500", x)).mul(Decimal.pow("1e500", x.pow(2))) },
+            display() { return `<span style="font-size:12px;">Multiply gain of matter particles by 1e20.<br>Times Bought: ${formatWhole(getBuyableAmount(this.layer, this.id))}<br>Cost: ${format(this.cost())} matter<br>Effect: ${format(this.effect())}x particles</span>` },
+            canAfford() { return player[this.layer].points.gte(this.cost()) },
+            buy() {
+                player[this.layer].points = player[this.layer].points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect() {return Decimal.pow(1e20, getBuyableAmount(this.layer, this.id))},
+        },
+        13: {
+            title: "<h3>Probability Field Manipulation</h3>",
+            cost(x) { return new Decimal("1e130000").mul(Decimal.pow("1e5000", x)).mul(Decimal.pow("1e1000", x.pow(2))) },
+            display() { return `<span style="font-size:12px;">Triple tokens gain.<br>Times Bought: ${formatWhole(getBuyableAmount(this.layer, this.id))}<br>Cost: ${format(this.cost())} matter<br>Effect: ${format(this.effect())}x tokens</span>` },
+            canAfford() { return player[this.layer].points.gte(this.cost()) },
+            buy() {
+                player[this.layer].points = player[this.layer].points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect() {return Decimal.pow(3, getBuyableAmount(this.layer, this.id))},
+        },
+    },
     milestones: {
         0: {
             requirementDescription() {return `${format(1e7)} matter`},
@@ -273,6 +316,12 @@ addLayer("m", {
             toggles: [
                 ["m","autoMults"],
             ],
+        },
+        6: {
+            requirementDescription() {return `${format("1e130000")} matter`},
+            effectDescription: "Unlock Matter Buyables.",
+            done() { return player.m.points.gte("1e130000") },
+            unlocked() { return player.t.unlocked },
         },
     },
     clickables: {

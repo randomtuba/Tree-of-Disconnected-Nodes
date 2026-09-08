@@ -12,12 +12,20 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "Act 1 Part 5",
-	name: "Boxes",
+	num: "Act 1 Part 6",
+	name: "Tokens",
 }
 
 let changelog = `<h1>Changelog</h1><br>
 	<span style="font-size:11px;">If this game gets abandoned, don't forget me ok?</span><br><br>
+	<h3>Act 1 Part 6: Tokens (9/7/2026)</h3><br>
+	<b>Endgame: 1.00e72 tokens</b><br>
+		- Added the Tokens node.<br>
+		- Added 5 achievements.<br>
+		- Added new milestones.<br>
+		- Added matter buyables.<br>
+		- Added Singular Infinity.<br>
+		- Added transistors.<br><br>
 	<h3>Act 1 Part 5: Boxes (8/8/2026)</h3><br>
 	<b>Endgame: 1.00e98 boxes</b><br>
 		- Added the Boxes node.<br>
@@ -51,7 +59,7 @@ let winText = `Congratulations! You have reached the end and beaten this game, b
 
 // If you add new functions anywhere inside of a layer, and those functions have an effect when called, add them here.
 // (The ones here are examples, all official functions are already taken care of)
-var doNotCallTheseFunctionsEveryTick = ["blowUpEverything","boxReset"]
+var doNotCallTheseFunctionsEveryTick = ["blowUpEverything","boxReset","rollDice"]
 
 function getStartPoints(){
     return new Decimal(modInfo.initialStartPoints)
@@ -77,6 +85,7 @@ function getPointGen() {
 	gain = gain.mul(player.b.cuboids[1].pow(10).add(1))
 	gain = gain.mul(player.b.cuboids[2].pow(10).add(1))
 	gain = gain.mul(player.b.cuboids[3].pow(10).add(1))
+	gain = gain.mul(player.t.diceMult.pow(100).add(1))
 	return gain
 }
 
@@ -86,12 +95,12 @@ function addedPlayerData() { return {
 
 // Display extra things at the top of the page
 var displayThings = [
-	() => `Current Endgame: ${format("1e98")} boxes`,
+	() => `Current Endgame: ${format("1e72")} tokens`,
 ]
 
 // Determines when the game "ends"
 function isEndgame() {
-	return player.b.points.gte(new Decimal("1e98"))
+	return player.t.points.gte(new Decimal("1e72"))
 }
 
 
@@ -106,8 +115,8 @@ function backgroundStyle() {
 	else if (!player.c.unlocked) ret["background-color"] = "#0c161c"
 	else if (!player.s.unlocked) ret["background-color"] = "#150c1c"
 	else if (!player.b.unlocked) ret["background-color"] = "#05140b"
-	else ret["background-color"] = "#1d0d00"
-	// else ret["background-color"] = "#181f1b"
+	else if (!player.t.unlocked) ret["background-color"] = "#1d0d00"
+	else ret["background-color"] = "#181f1b"
 
   	return ret
 }
