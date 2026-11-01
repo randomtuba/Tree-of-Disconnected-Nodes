@@ -25,7 +25,8 @@ let changelog = `<h1>Changelog</h1><br>
 		- Added new milestones.<br>
 		- Added oscillations.<br>
 		- Added a new cuboids type.<br>
-		- Added a new tokens minigame.<br><br>
+		- Added a new tokens minigame.<br>
+		- Added a favicon.<br><br>
 	<h3>Act 1 Part 6: Tokens (9/7/2026)</h3><br>
 	<b>Endgame: 1.00e72 tokens</b><br>
 		- Added the Tokens node.<br>
