@@ -76,7 +76,7 @@ addLayer("f", {
             return player.b.fluidToggles[8] ? player.f.infinityFills[1].pow(0.2).add(1) : new Decimal(1)
         }
         if (x == 3) { // singular infinity
-            return player.f.infinityFills[2].pow(0.01).add(1)
+            return player.f.infinityFills[2].pow(0.01).add(1).pow(buyableEffect("s",12))
         }
     },
     fillSpeed(x) {
@@ -211,7 +211,7 @@ addLayer("f", {
                 player.f.fluidPerSecond = new Decimal(0)
             }
             if (hasMilestone("f",0) && !player.f.infinity[2]) player.f.singularities = player.f.singularities.add(layers.f.singularityGen().mul(diff))
-            if (hasMilestone("f",0) && player.f.infinity[2]) player.f.infinityFills[2] = player.f.infinityFills[2].add(layers.f.singularityGen().mul(diff))
+            if (hasMilestone("f",0) && (player.f.infinity[2] || hasMilestone("f",8))) player.f.infinityFills[2] = player.f.infinityFills[2].add(layers.f.singularityGen().mul(diff))
             if (hasMilestone("f",1)) player.f.planckPoints = player.f.planckPoints.add(layers.f.planckPointsGen().mul(diff))
             if (hasMilestone("f",3)) {
                 player.f.infinityFills[0] = player.f.infinityFills[0].add(layers.f.fillSpeed(1).mul(diff))
@@ -419,6 +419,12 @@ addLayer("f", {
             effectDescription: "Unlock Singular Infinity.",
             done() { return getBuyableAmount("f",11).gte(308) },
             unlocked() { return player.t.unlocked },
+        },
+        8: {
+            requirementDescription() {return `${formatWhole(500)} Pressure purchases`},
+            effectDescription: "Stored singularities can be generated when singular infinity is inactive.",
+            done() { return getBuyableAmount("f",11).gte(500) },
+            unlocked() { return player.k.unlocked },
         },
     },
     clickables: {

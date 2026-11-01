@@ -459,6 +459,7 @@ addLayer("tr", {
         mult = new Decimal(1)
         mult = mult.mul(buyableEffect("tr",12))
         mult = mult.mul(buyableEffect("tr",22))
+        mult = mult.mul(buyableEffect("s",13))
         return mult
     },
     gainExp() {

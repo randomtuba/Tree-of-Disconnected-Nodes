@@ -12,6 +12,8 @@ addLayer("t", {
         rollCooldown: [5,1],
         streak: 0,
         diceMult: new Decimal(1),
+        blackjack: [],
+        blackjackMult: new Decimal(1),
     }},
     color: "#9cd3b0",
     requires: new Decimal(1e98),
@@ -106,6 +108,8 @@ addLayer("t", {
         mult = mult.mul(buyableEffect("t",23))
         mult = mult.mul(layers.f.infinityFillEffect(3))
         mult = mult.mul(buyableEffect("tr",23))
+        mult = mult.mul(layers.k.knightsEffect())
+        mult = mult.mul(player.t.blackjackMult)
 
         return mult
     },
@@ -174,10 +178,45 @@ addLayer("t", {
 
         return "Regular"
     },
+    blackjackTotal() {
+        let count = 0
+        let numberOfAces = 0
+        for (const card of player.t.blackjack) {
+            switch (card) {
+                case "A":
+                    count++
+                    numberOfAces++
+                    break
+                default:
+                    count += card
+                    break
+            }
+        }
+        while ((count + 10) <= buyableEffect("t",32) && numberOfAces > 0) {
+            count += 10
+            numberOfAces--
+        }
+        return count
+    },
+    blackjackMultGain() {
+        return layers.t.blackjackTotal() > buyableEffect("t",32) ? new Decimal(0) : Decimal.pow(Decimal.mul(3, buyableEffect("t",31)), layers.t.blackjackTotal()).pow(2)
+    },
     automate() {
+        let a = new Decimal(0)
+        let b = new Decimal(0)
+        let c = new Decimal(0)
         if (player.t.autoRoll && hasMilestone("t",0)) {
             if (layers.t.clickables[21].canClick()) layers.t.clickables[21].onClick()
             if (hasMilestone("t",2) && layers.t.clickables[31].canClick()) layers.t.clickables[31].onClick()
+        }
+        if (player.t.autoTokenBuyables && hasMilestone("t",3)) {
+            setBuyableAmount("t", 11, tmp.t.buyables[11].canAfford ? player.t.points.div(2).log(5).add(1).floor() : getBuyableAmount("t",11))
+            setBuyableAmount("t", 13, tmp.t.buyables[13].canAfford ? player.t.points.div(50).log(8).add(1).floor() : getBuyableAmount("t",13))
+
+            a = Decimal.log10(1.25)
+            b = Decimal.log10(50)
+            c = Decimal.log10(1e21).sub(player.t.points.max(1).log10())
+            setBuyableAmount("t", 23, tmp.t.buyables[23].canAfford ? b.mul(-1).add(Decimal.pow(b,2).sub(Decimal.mul(4,a.mul(c))).max(0).sqrt()).div(a.mul(2)).add(1).floor() : getBuyableAmount("t",23))
         }
     },
     update(diff) {
@@ -209,6 +248,13 @@ addLayer("t", {
         () => hasMilestone("t",1) ? ["display-text", `Dice multiplier: <span style="color: #00ff00">${format(player.t.diceMult)}</span>x prize value`] : '',
         "grid",
         () => hasMilestone("t",1) ? ["clickables",[3]] : '',
+        () => hasMilestone("t",1) ? "blank" : '',
+        () => hasMilestone("t",4) ? ["display-text", `<span style="color: #ffff00">Current cards in your hand: ${player.t.blackjack.length == 0 ? "None" : player.t.blackjack.join(", ")}</span>`] : '',
+        () => hasMilestone("t",4) ? ["display-text", `Try to get a sum less than or equal to ${formatWhole(buyableEffect("t",32))} without surpassing ${formatWhole(buyableEffect("t",32))}.<br>A (ace) cards count as 1 or 11.`] : '',
+        () => hasMilestone("t",4) ? ["display-text", `<span style="font-size:21px; color: ${layers.t.blackjackTotal() > buyableEffect("t",32) ? `#ff0000` : `#00ff00`}">Your total: ${layers.t.blackjackTotal()}</span>`] : '',
+        () => hasMilestone("t",4) ? ["display-text", `If you check now, you will gain +<span style="color: #00ffff">${format(layers.t.blackjackMultGain())}</span> blackjack mult!`] : '',
+        () => hasMilestone("t",4) ? ["display-text", `Blackjack multiplier: <span style="color: #00ff00">${format(player.t.blackjackMult)}</span>x dice multiplier`] : '',
+        () => hasMilestone("t",4) ? ["clickables",[4]] : '',
         () => hasMilestone("t",1) ? "blank" : '',
         "buyables",
     ],
@@ -245,7 +291,7 @@ addLayer("t", {
                 player[this.layer].points = player[this.layer].points.sub(this.cost())
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
-            effect() {return getBuyableAmount(this.layer, this.id)},
+            effect() {return getBuyableAmount(this.layer, this.id).pow(buyableEffect("s",22))},
         },
         21: {
             title: "<h3>Weighted Wheel</h3>",
@@ -284,6 +330,43 @@ addLayer("t", {
             effect() {return Decimal.pow(5, getBuyableAmount(this.layer, this.id))},
             unlocked() {return hasMilestone("t",1)},
         },
+        31: {
+            title: "<h3>Card Counting</h3>",
+            cost(x) { return new Decimal(1e300).mul(Decimal.pow(1e40, x)).mul(Decimal.pow(2, x.pow(2))) },
+            display() { return `<span style="font-size:12px;">Multiply the blackjack mult per score by +1x. (before the squaring)<br>Times Bought: ${formatWhole(getBuyableAmount(this.layer, this.id))}<br>Cost: ${format(this.cost())} tokens<br>Effect: Blackjack mult per score is ${format(this.effect())}x</span>` },
+            canAfford() { return player[this.layer].points.gte(this.cost()) },
+            buy() {
+                player[this.layer].points = player[this.layer].points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect() {return getBuyableAmount(this.layer, this.id).add(1)},
+            unlocked() {return hasMilestone("t",4)},
+        },
+        32: {
+            title: "<h3>Sleight of Hand</h3>",
+            cost(x) { return new Decimal("1e370").mul(Decimal.pow(1e60, x)).mul(Decimal.pow(3, x.pow(2))) },
+            display() { return `<span style="font-size:12px;">Increase the blackjack limit by 4.<br>Times Bought: ${formatWhole(getBuyableAmount(this.layer, this.id))}<br>Cost: ${format(this.cost())} tokens<br>Effect: Blackjack limit is ${formatWhole(this.effect())}</span>` },
+            canAfford() { return player[this.layer].points.gte(this.cost()) },
+            buy() {
+                player[this.layer].points = player[this.layer].points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect() {return Decimal.add(21, getBuyableAmount(this.layer, this.id).mul(4)).toNumber()},
+            unlocked() {return hasMilestone("t",4)},
+        },
+        33: {
+            title: "<h3>Final Round</h3>",
+            cost(x) { return new Decimal("1e390").mul(Decimal.pow(1e20, x)).mul(Decimal.pow(2, x.pow(2))) },
+            display() { return `<span style="font-size:12px;">Multiply max health and ATK per knight and streak gained per roll by 12.<br>Times Bought: ${formatWhole(getBuyableAmount(this.layer, this.id))}<br>Cost: ${format(this.cost())} tokens<br>Effect: ${format(this.effect())}x streak gain</span>` },
+            canAfford() { return player[this.layer].points.gte(this.cost()) },
+            purchaseLimit: 50,
+            buy() {
+                player[this.layer].points = player[this.layer].points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect() {return Decimal.pow(12, getBuyableAmount(this.layer, this.id))},
+            unlocked() {return hasMilestone("t",4)},
+        },
     },
     milestones: {
         0: {
@@ -306,6 +389,21 @@ addLayer("t", {
             effectDescription: "Auto-Roll applies to the dice minigame and the first 3 dice are guaranteed to be the same number.",
             done() { return player.t.points.gte(1e25) },
             unlocked() { return hasMilestone("t",1) },
+        },
+        3: {
+            requirementDescription() {return `${formatWhole(1e100)} tokens`},
+            effectDescription: "Autobuy token buyables without consuming tokens.",
+            done() { return player.t.points.gte(1e100) },
+            unlocked() { return player.k.unlocked },
+            toggles: [
+                ["t","autoTokenBuyables"],
+            ],
+        },
+        4: {
+            requirementDescription() {return `${formatWhole(1e270)} tokens`},
+            effectDescription: "Unlock the blackjack minigame and 3 new buyables.",
+            done() { return player.t.points.gte(1e270) },
+            unlocked() { return hasMilestone("t",3) },
         },
     },
     clickables: {
@@ -354,7 +452,7 @@ addLayer("t", {
                 player.t.rollCooldown[0] = buyableEffect("t",12)
                 if (player.t.rolled === player.t.selection) {
                     player.t.points = player.t.points.add(layers.t.generation())
-                    player.t.streak++
+                    player.t.streak += buyableEffect("t",33).toNumber()
                 } else {
                     player.t.streak = 0
                 }
@@ -379,6 +477,31 @@ addLayer("t", {
                 player.t.diceMult = player.t.diceMult.add(layers.t.diceSum().mul(layers.t.diceMult()))
             },
             canClick() {return player.t.rollCooldown[1] <= 0},
+            style() {
+                let style = {"width": "100px", "min-height": "100px"}
+                return style
+            },
+        },
+        41: {
+            display() {return `<h2 style="font-size:20px;">Draw</h2>`},
+            onClick() {
+                const choice = (arr) => arr[Math.floor(Math.random() * arr.length)]
+                const randomCard = choice([2,3,4,5,6,7,8,9,10,10,10,10,"A"])
+                player.t.blackjack.push(randomCard)
+            },
+            canClick() {return layers.t.blackjackTotal() <= buyableEffect("t",32)},
+            style() {
+                let style = {"width": "100px", "min-height": "100px"}
+                return style
+            },
+        },
+        42: {
+            display() {return `<h2 style="font-size:20px;">Check</h2>`},
+            onClick() {
+                player.t.blackjackMult = player.t.blackjackMult.add(layers.t.blackjackMultGain())
+                player.t.blackjack = []
+            },
+            canClick() {return player.t.blackjack.length > 0},
             style() {
                 let style = {"width": "100px", "min-height": "100px"}
                 return style

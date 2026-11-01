@@ -2,7 +2,7 @@ let modInfo = {
 	name: "Tree of Disconnected Nodes",
 	author: "randomtuba",
 	pointsName: "",
-	modFiles: ["tree.js", "side-layers.js", "matter.js", "fluid.js", "chips.js", "strings.js", "boxes.js", "tokens.js"],
+	modFiles: ["tree.js", "side-layers.js", "matter.js", "fluid.js", "chips.js", "strings.js", "boxes.js", "tokens.js", "knights.js"],
 
 	discordName: "tuba's new place",
 	discordLink: "https://discord.gg/HhcavwM5rm",
@@ -12,12 +12,20 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "Act 1 Part 6",
-	name: "Tokens",
+	num: "Act 1 Part 7",
+	name: "Knights",
 }
 
 let changelog = `<h1>Changelog</h1><br>
 	<span style="font-size:11px;">If this game gets abandoned, don't forget me ok?</span><br><br>
+	<h3>Act 1 Part 7: Knights (11/1/2026)</h3><br>
+	<b>Endgame: Reach Zone 62</b><br>
+		- Added the Knights node.<br>
+		- Added 6 achievements.<br>
+		- Added new milestones.<br>
+		- Added oscillations.<br>
+		- Added a new cuboids type.<br>
+		- Added a new tokens minigame.<br><br>
 	<h3>Act 1 Part 6: Tokens (9/7/2026)</h3><br>
 	<b>Endgame: 1.00e72 tokens</b><br>
 		- Added the Tokens node.<br>
@@ -59,7 +67,7 @@ let winText = `Congratulations! You have reached the end and beaten this game, b
 
 // If you add new functions anywhere inside of a layer, and those functions have an effect when called, add them here.
 // (The ones here are examples, all official functions are already taken care of)
-var doNotCallTheseFunctionsEveryTick = ["blowUpEverything","boxReset","rollDice"]
+var doNotCallTheseFunctionsEveryTick = ["blowUpEverything","boxReset","rollDice","newBattle"]
 
 function getStartPoints(){
     return new Decimal(modInfo.initialStartPoints)
@@ -86,6 +94,7 @@ function getPointGen() {
 	gain = gain.mul(player.b.cuboids[2].pow(10).add(1))
 	gain = gain.mul(player.b.cuboids[3].pow(10).add(1))
 	gain = gain.mul(player.t.diceMult.pow(100))
+	gain = gain.mul(Decimal.pow("1e1000", player.k.zone))
 	return gain
 }
 
@@ -95,12 +104,12 @@ function addedPlayerData() { return {
 
 // Display extra things at the top of the page
 var displayThings = [
-	() => `Current Endgame: ${format("1e72")} tokens`,
+	() => `Current Endgame: Reach Zone 62`,
 ]
 
 // Determines when the game "ends"
 function isEndgame() {
-	return player.t.points.gte(new Decimal("1e72"))
+	return player.k.zone >= 62
 }
 
 
@@ -116,8 +125,8 @@ function backgroundStyle() {
 	else if (!player.s.unlocked) ret["background-color"] = "#150c1c"
 	else if (!player.b.unlocked) ret["background-color"] = "#05140b"
 	else if (!player.t.unlocked) ret["background-color"] = "#1d0d00"
-	else /* if (!player.k.unlocked) */ ret["background-color"] = "#181f1b"
-	// else ret["background-color"] = "#060924"
+	else if (!player.k.unlocked) ret["background-color"] = "#181f1b"
+	else ret["background-color"] = "#060924"
 
   	return ret
 }

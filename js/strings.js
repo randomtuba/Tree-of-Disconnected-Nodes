@@ -9,6 +9,8 @@ addLayer("s", {
         stringTypes: [null,new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0)],
         dimensionUpgrades: [null,new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0)], // 20 total
         flavor: [],
+        oscillations: new Decimal(0),
+        oscillationTimer: 0,
     }},
     color: "#2ec766",
     requires: new Decimal(1e49),
@@ -44,7 +46,7 @@ addLayer("s", {
                     gen = gen.mul(layers.s.stringTypeEffect(2))
                     if (player.s.flavor.includes(2) && player.b.stringToggles[6]) gen = gen.mul(100)
                     if (hasMilestone("b",2)) gen = gen.mul(layers.b.boxesEffect(0))
-                    if (player.s.flavor.includes(5)) gen = gen.mul(1e20)
+                    if (player.s.flavor.includes(5) && player.b.boxToggles[5]) gen = gen.mul(1e20)
                     if (hasMilestone("b",3)) gen = gen.pow(layers.b.boxesEffect(8))
                     return gen
                 }
@@ -59,7 +61,7 @@ addLayer("s", {
                     gen = gen.mul(layers.s.stringTypeEffect(3))
                     if (player.s.flavor.includes(2) && player.b.stringToggles[6]) gen = gen.mul(100)
                     if (hasMilestone("b",2)) gen = gen.mul(layers.b.boxesEffect(0))
-                    if (player.s.flavor.includes(5)) gen = gen.mul(1e20)
+                    if (player.s.flavor.includes(5) && player.b.boxToggles[5]) gen = gen.mul(1e20)
                     if (hasMilestone("b",3)) gen = gen.pow(layers.b.boxesEffect(8))
                     return gen
                 }
@@ -74,7 +76,7 @@ addLayer("s", {
                     gen = gen.mul(layers.s.stringTypeEffect(4))
                     if (player.s.flavor.includes(2) && player.b.stringToggles[6]) gen = gen.mul(100)
                     if (hasMilestone("b",2)) gen = gen.mul(layers.b.boxesEffect(0))
-                    if (player.s.flavor.includes(5)) gen = gen.mul(1e20)
+                    if (player.s.flavor.includes(5) && player.b.boxToggles[5]) gen = gen.mul(1e20)
                     if (hasMilestone("b",3)) gen = gen.pow(layers.b.boxesEffect(8))
                     return gen
                 }
@@ -89,7 +91,7 @@ addLayer("s", {
                     gen = gen.mul(layers.s.stringTypeEffect(5))
                     if (player.s.flavor.includes(2) && player.b.stringToggles[6]) gen = gen.mul(100)
                     if (hasMilestone("b",2)) gen = gen.mul(layers.b.boxesEffect(0))
-                    if (player.s.flavor.includes(5)) gen = gen.mul(1e20)
+                    if (player.s.flavor.includes(5) && player.b.boxToggles[5]) gen = gen.mul(1e20)
                     if (hasMilestone("b",3)) gen = gen.pow(layers.b.boxesEffect(8))
                     return gen
                 }
@@ -104,7 +106,7 @@ addLayer("s", {
                     gen = gen.mul(layers.b.boxesEffect(0))
                     if (player.s.flavor.includes(2) && player.b.stringToggles[6]) gen = gen.mul(100)
                     if (hasMilestone("b",2)) gen = gen.mul(layers.b.boxesEffect(0))
-                    if (player.s.flavor.includes(5)) gen = gen.mul(1e20)
+                    if (player.s.flavor.includes(5) && player.b.boxToggles[5]) gen = gen.mul(1e20)
                     if (hasMilestone("b",3)) gen = gen.pow(layers.b.boxesEffect(8))
                     return gen
                 }
@@ -114,7 +116,7 @@ addLayer("s", {
     stringTypeEffect(x) {
         let effectExp = 1.25
         if (player.s.flavor.includes(1)) effectExp += 0.025
-        if (player.s.flavor.includes(4)) effectExp += 0.1
+        if (player.s.flavor.includes(4) && player.b.boxToggles[5]) effectExp += 0.1
         switch (x) {
             case 1:
                 if (!player.b.stringToggles[0]) return new Decimal(1)
@@ -155,13 +157,19 @@ addLayer("s", {
         if (type == 5) cost = Decimal.mul(Decimal.mul(1e205, Decimal.pow(1e10, x-1)), Decimal.pow(Decimal.pow(1e8, x), amt)).mul(Decimal.pow(2, amt.pow(2)))
         if (x == 4) cost = cost.mul(1e40)
         if (player.s.flavor.includes(3) && player.b.stringToggles[7]) cost = cost.div(100000)
-        if (player.s.flavor.includes(6)) cost = cost.div("1e360")
+        if (player.s.flavor.includes(6) && player.b.boxToggles[5]) cost = cost.div("1e360")
         return cost
     },
     boxReset() {
         player.s.points = new Decimal(0)
         player.s.stringTypes = [null,new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0)]
         player.s.dimensionUpgrades = [null,new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0)]
+    },
+    oscillationsGen() {
+        let gen = player.s.points.div("1e51000").pow(0.0005)
+        gen = gen.mul(Math.sin(player.s.oscillationTimer) + 1)
+        gen = gen.mul(buyableEffect("s",21))
+        return gen
     },
     automate() {
         let a = new Decimal(0)
@@ -177,25 +185,25 @@ addLayer("s", {
             for (let i = 1; i < 5; i++) {
                 a = Decimal.log10(1.5)
                 b = Decimal.log10(Decimal.pow(12, i))
-                c = Decimal.log10(Decimal.mul(1e8, Decimal.pow(100, i-1)).mul(i == 4 ? 1e40 : 1).div(player.s.flavor.includes(3) && player.b.stringToggles[7] ? 100000 : 1).div(player.s.flavor.includes(6) ? "1e360" : 1)).sub(player.s.points.max(1).log10())
+                c = Decimal.log10(Decimal.mul(1e8, Decimal.pow(100, i-1)).mul(i == 4 ? 1e40 : 1).div(player.s.flavor.includes(3) && player.b.stringToggles[7] ? 100000 : 1).div(player.s.flavor.includes(6) && player.b.boxToggles[5] ? "1e360" : 1)).sub(player.s.points.max(1).log10())
                 if(player.s.points.gte(layers.s.dimensionCost(2,i))) player.s.dimensionUpgrades[i+4] = b.mul(-1).add(Decimal.pow(b,2).sub(Decimal.mul(4,a.mul(c))).max(0).sqrt()).div(a.mul(2)).add(1).floor()
             }
             for (let i = 1; i < 5; i++) {
                 a = Decimal.log10(1.5)
                 b = Decimal.log10(Decimal.pow(18, i))
-                c = Decimal.log10(Decimal.mul(1e18, Decimal.pow(1000, i-1)).mul(i == 4 ? 1e40 : 1).div(player.s.flavor.includes(3) && player.b.stringToggles[7] ? 100000 : 1).div(player.s.flavor.includes(6) ? "1e360" : 1)).sub(player.s.points.max(1).log10())
+                c = Decimal.log10(Decimal.mul(1e18, Decimal.pow(1000, i-1)).mul(i == 4 ? 1e40 : 1).div(player.s.flavor.includes(3) && player.b.stringToggles[7] ? 100000 : 1).div(player.s.flavor.includes(6) && player.b.boxToggles[5] ? "1e360" : 1)).sub(player.s.points.max(1).log10())
                 if(player.s.points.gte(layers.s.dimensionCost(3,i))) player.s.dimensionUpgrades[i+8] = b.mul(-1).add(Decimal.pow(b,2).sub(Decimal.mul(4,a.mul(c))).max(0).sqrt()).div(a.mul(2)).add(1).floor()
             }
             for (let i = 1; i < 5; i++) {
                 a = Decimal.log10(2)
                 b = Decimal.log10(Decimal.pow(10000, i))
-                c = Decimal.log10(Decimal.mul(1e140, Decimal.pow(100000, i-1)).mul(i == 4 ? 1e40 : 1).div(player.s.flavor.includes(3) && player.b.stringToggles[7] ? 100000 : 1).div(player.s.flavor.includes(6) ? "1e360" : 1)).sub(player.s.points.max(1).log10())
+                c = Decimal.log10(Decimal.mul(1e140, Decimal.pow(100000, i-1)).mul(i == 4 ? 1e40 : 1).div(player.s.flavor.includes(3) && player.b.stringToggles[7] ? 100000 : 1).div(player.s.flavor.includes(6) && player.b.boxToggles[5] ? "1e360" : 1)).sub(player.s.points.max(1).log10())
                 if(player.s.points.gte(layers.s.dimensionCost(4,i))) player.s.dimensionUpgrades[i+12] = b.mul(-1).add(Decimal.pow(b,2).sub(Decimal.mul(4,a.mul(c))).max(0).sqrt()).div(a.mul(2)).add(1).floor()
             }
             for (let i = 1; i < 5; i++) {
                 a = Decimal.log10(2)
                 b = Decimal.log10(Decimal.pow(1e8, i))
-                c = Decimal.log10(Decimal.mul(1e205, Decimal.pow(1e10, i-1)).mul(i == 4 ? 1e40 : 1).div(player.s.flavor.includes(3) && player.b.stringToggles[7] ? 100000 : 1).div(player.s.flavor.includes(6) ? "1e360" : 1)).sub(player.s.points.max(1).log10())
+                c = Decimal.log10(Decimal.mul(1e205, Decimal.pow(1e10, i-1)).mul(i == 4 ? 1e40 : 1).div(player.s.flavor.includes(3) && player.b.stringToggles[7] ? 100000 : 1).div(player.s.flavor.includes(6) && player.b.boxToggles[5] ? "1e360" : 1)).sub(player.s.points.max(1).log10())
                 if(player.s.points.gte(layers.s.dimensionCost(5,i))) player.s.dimensionUpgrades[i+16] = b.mul(-1).add(Decimal.pow(b,2).sub(Decimal.mul(4,a.mul(c))).max(0).sqrt()).div(a.mul(2)).add(1).floor()
             }
         }
@@ -209,6 +217,11 @@ addLayer("s", {
             Vue.set(player.s.stringTypes, 3, player.s.stringTypes[3].add(layers.s.stringTypeGen(3).mul(diff)))
             Vue.set(player.s.stringTypes, 4, player.s.stringTypes[4].add(layers.s.stringTypeGen(4).mul(diff)))
             Vue.set(player.s.stringTypes, 5, player.s.stringTypes[5].add(layers.s.stringTypeGen(5).mul(diff)))
+            if (hasMilestone("s",6)) {
+                player.s.oscillations = player.s.oscillations.add(layers.s.oscillationsGen().mul(diff))
+                player.s.oscillationTimer += diff
+                if (player.s.oscillationTimer >= 2 * Math.PI) player.s.oscillationTimer = 0
+            }
         }
     },
 
@@ -223,8 +236,85 @@ addLayer("s", {
         () => hasMilestone("s",1) ? ["clickables",[6,7]] : '',
         "blank",
         ["strings-table", () => player],
-        "buyables",
+        "blank",
+        () => hasMilestone("s",6) ? ["display-text", `You have <h2 style="color: #979797; text-shadow: 0px 0px 10px #979797">${format(player.s.oscillations)}</h2> oscillations. (${format(layers.s.oscillationsGen())}/sec)`] : '',
+        () => hasMilestone("s",6) ? ["display-text", `Oscillations are generated based on strings and the gain fluctuates over time.`] : '',
+        () => hasMilestone("s",6) ? "buyables" : '',
     ],
+    buyables: {
+        11: {
+            title: "<h3>Baryon Asymmetry</h3>",
+            cost(x) { return new Decimal(100).mul(Decimal.pow(5, x)).pow(Decimal.pow(1.05, x.pow(2))) },
+            display() { return `<span style="font-size:12px;">Multiply matter generation by ${format(1e200)}x.<br>Times Bought: ${formatWhole(getBuyableAmount(this.layer, this.id))}<br>Cost: ${format(this.cost())} oscillations<br>Effect: ${format(this.effect())}x matter/sec</span>` },
+            canAfford() { return player[this.layer].oscillations.gte(this.cost()) },
+            buy() {
+                player[this.layer].oscillations = player[this.layer].oscillations.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect() {return Decimal.pow(1e200, getBuyableAmount(this.layer, this.id))},
+            style() {const style = {}; if (this.canAfford()) {style["background-color"] = "#979797"}; return style},
+        },
+        12: {
+            title: "<h3>Gravitational Lensing</h3>",
+            cost(x) { return new Decimal(1000).mul(Decimal.pow(7, x)).pow(Decimal.pow(1.05, x.pow(2))) },
+            display() { return `<span style="font-size:12px;">+1 exponent to stored singularities effect.<br>Times Bought: ${formatWhole(getBuyableAmount(this.layer, this.id))}<br>Cost: ${format(this.cost())} oscillations<br>Effect: ^${format(this.effect())} stored singularities effect</span>` },
+            canAfford() { return player[this.layer].oscillations.gte(this.cost()) },
+            buy() {
+                player[this.layer].oscillations = player[this.layer].oscillations.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect() {return Decimal.add(1, getBuyableAmount(this.layer, this.id))},
+            style() {const style = {}; if (this.canAfford()) {style["background-color"] = "#979797"}; return style},
+        },
+        13: {
+            title: "<h3>Moore's Law</h3>",
+            cost(x) { return new Decimal(10000).mul(Decimal.pow(15, x)).pow(Decimal.pow(1.1, x.pow(2))) },
+            display() { return `<span style="font-size:12px;">Multiply transistors gained per tile click by 6x.<br>Times Bought: ${formatWhole(getBuyableAmount(this.layer, this.id))}<br>Cost: ${format(this.cost())} oscillations<br>Effect: ${format(this.effect())}x transistors/click</span>` },
+            canAfford() { return player[this.layer].oscillations.gte(this.cost()) },
+            buy() {
+                player[this.layer].oscillations = player[this.layer].oscillations.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect() {return Decimal.pow(6, getBuyableAmount(this.layer, this.id))},
+            style() {const style = {}; if (this.canAfford()) {style["background-color"] = "#979797"}; return style},
+        },
+        21: {
+            title: "<h3>Standing Wave</h3>",
+            cost(x) { return new Decimal(10000).mul(Decimal.pow(20, x)).pow(Decimal.pow(1.15, x.pow(2))) },
+            display() { return `<span style="font-size:12px;">Quadruple oscillations generation.<br>Times Bought: ${formatWhole(getBuyableAmount(this.layer, this.id))}<br>Cost: ${format(this.cost())} oscillations<br>Effect: ${format(this.effect())}x oscillations/sec</span>` },
+            canAfford() { return player[this.layer].oscillations.gte(this.cost()) },
+            buy() {
+                player[this.layer].oscillations = player[this.layer].oscillations.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect() {return Decimal.pow(4, getBuyableAmount(this.layer, this.id))},
+            style() {const style = {}; if (this.canAfford()) {style["background-color"] = "#979797"}; return style},
+        },
+        22: {
+            title: "<h3>Non-Standard Deviation</h3>",
+            cost(x) { return new Decimal(100000).mul(Decimal.pow(5, x)).pow(Decimal.pow(1.05, x.pow(2))) },
+            display() { return `<span style="font-size:12px;">+1 exponent to Lucky Streak effect.<br>Times Bought: ${formatWhole(getBuyableAmount(this.layer, this.id))}<br>Cost: ${format(this.cost())} oscillations<br>Effect: ^${format(this.effect())} Lucky Streak effect</span>` },
+            canAfford() { return player[this.layer].oscillations.gte(this.cost()) },
+            buy() {
+                player[this.layer].oscillations = player[this.layer].oscillations.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect() {return Decimal.add(1, getBuyableAmount(this.layer, this.id))},
+            style() {const style = {}; if (this.canAfford()) {style["background-color"] = "#979797"}; return style},
+        },
+        23: {
+            title: "<h3>Genetic Engineering</h3>",
+            cost(x) { return new Decimal(100000).mul(Decimal.pow(15, x)).pow(Decimal.pow(1.1, x.pow(2))) },
+            display() { return `<span style="font-size:12px;">Multiply max health and ATK per knight by 5x.<br>Times Bought: ${formatWhole(getBuyableAmount(this.layer, this.id))}<br>Cost: ${format(this.cost())} oscillations<br>Effect: ${format(this.effect())}x max health and ATK</span>` },
+            canAfford() { return player[this.layer].oscillations.gte(this.cost()) },
+            buy() {
+                player[this.layer].oscillations = player[this.layer].oscillations.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect() {return Decimal.pow(5, getBuyableAmount(this.layer, this.id))},
+            style() {const style = {}; if (this.canAfford()) {style["background-color"] = "#979797"}; return style},
+        },
+    },
     milestones: {
         0: {
             requirementDescription() {return `${format(1e50)} strings`},
@@ -264,6 +354,12 @@ addLayer("s", {
             effectDescription: "You can activate up to 6 string flavors.",
             done() { return player.s.points.gte("1e30500") },
             unlocked() { return player.b.unlocked },
+        },
+        6: {
+            requirementDescription() {return `${format("1e51000")} strings`},
+            effectDescription: "Unlock oscillations.",
+            done() { return player.s.points.gte("1e51000") },
+            unlocked() { return player.k.unlocked },
         },
     },
     clickables: {

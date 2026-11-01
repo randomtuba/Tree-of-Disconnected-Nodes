@@ -96,9 +96,9 @@ addLayer("ach", {
             unlocked() {return player.s.unlocked}
         },
         43: {
-            name: "???",
-            done() {return false},
-            tooltip() {return `???`},
+            name: "Gamma-ray burst",
+            done() {return layers.s.oscillationsGen().gte(3e19)},
+            tooltip() {return `Reach ${format(3e19)} oscillations per second.`},
             style() {const style = {}; if (hasAchievement(this.layer,this.id)) style["background-color"] = "#2ec766"; return style},
             unlocked() {return player.t.unlocked},
         },
@@ -117,9 +117,9 @@ addLayer("ach", {
             unlocked() {return player.b.unlocked}
         },
         53: {
-            name: "???",
-            done() {return false},
-            tooltip() {return `???`},
+            name: "Black box hypothetical",
+            done() {return !player.b.matterToggles.includes(true) && !player.b.fluidToggles.includes(true) && !player.b.chipToggles.includes(true) && !player.b.stringToggles.includes(true) && !player.b.boxToggles.includes(true)},
+            tooltip() {return `Disable all possible toggles.`},
             style() {const style = {}; if (hasAchievement(this.layer,this.id)) style["background-color"] = "#e56b00"; return style},
             unlocked() {return player.t.unlocked},
         },
@@ -138,11 +138,32 @@ addLayer("ach", {
             unlocked() {return player.t.unlocked},
         },
         63: {
-            name: "???",
-            done() {return false},
-            tooltip() {return `???`},
+            name: "Catch this bluff",
+            done() {return layers.t.blackjackTotal() > 21 && layers.t.blackjackTotal() <= buyableEffect("t",32)},
+            tooltip() {return `Have more than a total of 21 in a valid blackjack hand.`},
             style() {const style = {}; if (hasAchievement(this.layer,this.id)) style["background-color"] = "#9cd3b0"; return style},
             unlocked() {return player.t.unlocked},
+        },
+        71: {
+            name: "Swooned",
+            done() {return player.k.inBattle && layers.k.knightStats("attack").sub(player.k.battleStats.enemyDefense).max(0).gte(player.k.battleStats.enemyMaxHealth)},
+            tooltip() {return `Defeat an enemy in one hit.`},
+            style() {const style = {}; if (hasAchievement(this.layer,this.id)) style["background-color"] = "#2e3fff"; return style},
+            unlocked() {return player.k.unlocked},
+        },
+        72: {
+            name: "You and what army?",
+            done() {return player.k.activeKnights.gte(1e18)},
+            tooltip() {return `Command an army of ${format(1e18)} knights.`},
+            style() {const style = {}; if (hasAchievement(this.layer,this.id)) style["background-color"] = "#2e3fff"; return style},
+            unlocked() {return player.k.unlocked},
+        },
+        73: {
+            name: "Fractured landscape",
+            done() {return player.k.zone >= 60},
+            tooltip() {return `Reach the Edge of the World.`},
+            style() {const style = {}; if (hasAchievement(this.layer,this.id)) style["background-color"] = "#2e3fff"; return style},
+            unlocked() {return player.k.unlocked},
         },
     },
 })
@@ -287,6 +308,23 @@ addLayer("help", {
                 All I could think about after a while was how to get out of here. The very moment I escaped my previous prison, I had entered a new one.<br><br>
                 It feels like I'm not in control of my life. We're all born in random locations with random characteristics. The cruel game of life dictates that we must deal with whatever we have, no matter the unfairness.<br><br>
                 If I keep moving forward, perhaps I'll have more control of the dice.`],
+            ],
+        },
+        "Knights": {
+            unlocked() {return player.k.unlocked},
+            buttonStyle: {
+                "border-color": "#2e3fff",
+            },
+            content: [
+                ["display-text", () => `I went on a walk one day with no particular destination in mind. During my stroll, I noticed something peculiar below me. Something was moving on the ground, without my influence! I crouched, gazing downward, to take a closer look.<br><br>
+                An insect lied before me. It was a tiny beetle, going about its day like any other creature. I watched this insect for hours, because I had nothing else to do. Sometimes it would munch on a plant, like a blade of grass or a fallen leaf. At other times, it would inch for long distances, trying to find a place to house itself.<br><br>
+                One day, it was raining heavily in the forest, and the dirt got all muddy. I eventually lost track of the beetle, and I assumed that it got washed away. When the rain cleared to make way for yet another average day, the beetle was indeed nowhere to be found.<br><br.
+                I hope wherever the beetle is, it lived through that storm. However, by now, that beetle is probably dead.<br><br>
+                Looking back, I still miss watching that beetle's journey. It seemed free to do whatever it wanted in a vast, expansive world, far bigger than it could ever imagine. But considering the beetle's situation further, I realized it is much harder for the beetle to climb the tallest trees and hike the highest hills.<br><br>
+                When we think about our places in the universe, we sometimes make ourselves out to be so tiny and insignificant. The planets, the binary star systems, and the galaxies all outrank us in their immense sizes and lifespans. However, we are also viewed as giants by ants, grains of rice, and the sextillions of water molecules in a single drop of water.<br><br>
+                So that's what I want people to recognize. I want people to know that the scale of everything is relative to everything else, and therefore, everything is connected to each other. And this doesn't just apply to the physical realm.<br><br>
+                Before I ended up in this barren, bewildering world, I consistently thought about whether my problems were too tiny to be significant. There were so many people who had it worse than me. I could eat food reliably, sleep up to 8 hours a night, and receive a good education.<br><br>
+                However, the truth is much more complicated. No matter how small or large your problems are, if they affect you, they're probably worth noticing. Especially for me right now. Up to this point, I never got anywhere by not caring.`],
             ],
         },
     },

@@ -31,6 +31,7 @@ addLayer("m", {
         mult = new Decimal(1)
         for (let i = 1; i < 7; i++) mult = mult.mul(layers.m.powerMult(i))
         mult = mult.mul(layers.t.tokensEffect())
+        mult = mult.mul(buyableEffect("s",11))
         return mult
     },
     gainExp() {
@@ -165,13 +166,29 @@ addLayer("m", {
         }
     },
     automate() {
+        let a = new Decimal(0)
+        let b = new Decimal(0)
+        let c = new Decimal(0)
         if (player.m.autoMults && hasMilestone("m",5)) {
-            if (player.m.points.gte(layers.m.multiplierCost(1))) player.m.multiplier[1] = player.m.points.mul(layers.m.particleEff("electron",1)).log(10).floor()
-            if (player.m.points.gte(layers.m.multiplierCost(2))) player.m.multiplier[2] = player.m.points.mul(layers.m.particleEff("electron",1)).log(100).floor()
-            if (player.m.points.gte(layers.m.multiplierCost(3))) player.m.multiplier[3] = player.m.points.mul(layers.m.particleEff("electron",1)).log(10000).floor()
-            if (player.m.points.gte(layers.m.multiplierCost(4))) player.m.multiplier[4] = player.m.points.mul(layers.m.particleEff("electron",1)).log(1e8).floor()
-            if (player.m.points.gte(layers.m.multiplierCost(5))) player.m.multiplier[5] = player.m.points.mul(layers.m.particleEff("electron",1)).log(1e16).floor()
-            if (player.m.points.gte(layers.m.multiplierCost(6))) player.m.multiplier[6] = player.m.points.mul(layers.m.particleEff("electron",1)).log(1e32).floor()
+            for (let i = 1; i < 7; i++) {
+                if (player.m.points.gte(layers.m.multiplierCost(i))) {
+                    player.m.multiplier[i] = player.m.points.mul(layers.m.particleEff("electron",1)).log(Decimal.pow(10, Decimal.pow(2, i - 1))).floor()
+                }
+            }
+        }
+        if (player.m.autoMatterBuyables && hasMilestone("m",7)) {
+            a = new Decimal(200)
+            b = new Decimal(1000)
+            c = new Decimal(125000).sub(player.m.points.max(1).log10())
+            setBuyableAmount("m", 11, tmp.m.buyables[11].canAfford ? b.mul(-1).add(Decimal.pow(b,2).sub(Decimal.mul(4,a.mul(c))).max(0).sqrt()).div(a.mul(2)).add(1).floor() : getBuyableAmount("m",11))
+            a = new Decimal(500)
+            b = new Decimal(2500)
+            c = new Decimal(127500).sub(player.m.points.max(1).log10())
+            setBuyableAmount("m", 12, tmp.m.buyables[12].canAfford ? b.mul(-1).add(Decimal.pow(b,2).sub(Decimal.mul(4,a.mul(c))).max(0).sqrt()).div(a.mul(2)).add(1).floor() : getBuyableAmount("m",12))
+            a = new Decimal(1000)
+            b = new Decimal(5000)
+            c = new Decimal(130000).sub(player.m.points.max(1).log10())
+            setBuyableAmount("m", 13, tmp.m.buyables[13].canAfford ? b.mul(-1).add(Decimal.pow(b,2).sub(Decimal.mul(4,a.mul(c))).max(0).sqrt()).div(a.mul(2)).add(1).floor() : getBuyableAmount("m",13))
         }
     },
     update(diff) {
@@ -319,9 +336,18 @@ addLayer("m", {
         },
         6: {
             requirementDescription() {return `${format("1e130000")} matter`},
-            effectDescription: "Unlock Matter Buyables.",
+            effectDescription: "Unlock matter buyables.",
             done() { return player.m.points.gte("1e130000") },
             unlocked() { return player.t.unlocked },
+        },
+        7: {
+            requirementDescription() {return `${format("1e1000000")} matter`},
+            effectDescription: "Autobuy matter buyables without consuming matter.",
+            done() { return player.m.points.gte("1e1000000") },
+            unlocked() { return player.k.unlocked },
+            toggles: [
+                ["m","autoMatterBuyables"],
+            ],
         },
     },
     clickables: {

@@ -10,8 +10,9 @@ addLayer("b", {
         fluidToggles: [true,true,true,true,true,true,true,true,true,true,true,true],
         chipToggles: [true,true,true,true,true],
         stringToggles: [true,true,true,true,true,true,true,true],
-        boxed: [false,false,false,false],
-        cuboids: [new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0)],
+        boxToggles: [true,true,true,true,true,true,true,true,true,true],
+        boxed: [false,false,false,false,false],
+        cuboids: [new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0)],
     }},
     color: "#e56b00",
     requires: new Decimal("1e380"),
@@ -24,7 +25,8 @@ addLayer("b", {
 
     // calculations
     gainMult() {
-        mult = player.b.cuboids[0].pow(0.5)
+        let mult = new Decimal(0)
+        if (player.b.boxToggles[6]) mult = mult.add(player.b.cuboids[0].pow(0.5))
         mult = mult.mul(buyableEffect("b",11))
         mult = mult.mul(buyableEffect("b",21))
         mult = mult.mul(layers.t.tokensEffect())
@@ -76,19 +78,39 @@ addLayer("b", {
                     for (let i = 0; i < player.b.stringToggles.length; i++) {
                         if (player.b.stringToggles[i] === false) falseCount++
                     }
-                    return Decimal.pow(10,falseCount).mul(buyableEffect("b",12)).mul(buyableEffect("b",22))
+                    return Decimal.pow(Decimal.mul(10,layers.b.cuboidEffect(4)),falseCount).mul(buyableEffect("b",12)).mul(buyableEffect("b",22))
+                }
+                else return new Decimal(0)
+            break
+            case 4:
+                if (player.b.boxToggles.includes(false) && player.b.boxed[4] && player.b.points.gte("1e930")) {
+                    let falseCount = 0
+                    for (let i = 0; i < player.b.boxToggles.length; i++) {
+                        if (player.b.boxToggles[i] === false) falseCount++
+                    }
+                    return Decimal.pow(1e10,falseCount).mul(buyableEffect("b",12)).mul(buyableEffect("b",22))
                 }
                 else return new Decimal(0)
             break
         }
     },
     cuboidEffect(x) {
-        if (x == 1) return player.b.cuboids[1].pow(0.1).add(1)
-        if (x == 2) return player.b.cuboids[2].pow(0.05).add(1)
-        if (x == 3) return player.b.cuboids[3].pow(0.15).add(1)
+        if (x == 1 && player.b.boxToggles[7]) return player.b.cuboids[1].pow(0.1).add(1)
+        if (x == 2 && player.b.boxToggles[8]) return player.b.cuboids[2].pow(0.05).add(1)
+        if (x == 3 && player.b.boxToggles[9]) return player.b.cuboids[3].pow(0.15).add(1)
+        if (x == 4) return player.b.cuboids[4].pow(0.05).add(1)
+        if (x == 5) {
+            let falseCount = 0
+            for (let i = 0; i < player.b.boxToggles.length; i++) {
+                if (player.b.boxToggles[i] === false) falseCount++
+            }
+            return Decimal.pow(10,falseCount)
+        }
+        return new Decimal(1)
     },
     boxesEffect(x) {
         if (x == 0) return player.b.points.pow(1.5).add(1)
+        if (!player.b.boxToggles[2]) return new Decimal(1)
         if (x == 1) return player.b.points.add(1).log10().add(1).log10().div(5).add(1)
         if (x == 2) return player.b.points.add(1).log10().add(1).log10().add(1)
         if (x == 3) return player.b.points.add(1).log10().add(1).log10().div(6).add(1)
@@ -98,11 +120,20 @@ addLayer("b", {
         if (x == 7) return player.b.points.pow(3).add(1)
         if (x == 8) return player.b.points.add(1).log10().add(1).log10().div(15).add(1)
     },
+    boxReset() {
+        player.b.buyables[11] = new Decimal(0)
+        player.b.buyables[12] = new Decimal(0)
+        player.b.buyables[21] = new Decimal(0)
+        player.b.buyables[22] = new Decimal(0)
+        player.b.points = new Decimal(0)
+        for (let i = 0; i < 4; i++) player.b.cuboids[i] = new Decimal(0)
+    },
     automate() {
         let a = new Decimal(0)
         let b = new Decimal(0)
         let c = new Decimal(0)
         if (player.b.autoBoxBuyables && hasMilestone("b",3)) {
+            setBuyableAmount("b", 11, tmp.b.buyables[11].canAfford ? player.b.points.div(1000).log(10).add(1).floor().min(200) : getBuyableAmount("b",11))
             setBuyableAmount("b", 12, tmp.b.buyables[12].canAfford ? player.b.points.div(10000).log(50).add(1).floor() : getBuyableAmount("b",12))
 
             a = Decimal.log10(10)
@@ -119,7 +150,7 @@ addLayer("b", {
         if (!player[this.layer].unlocked && player.s.points.gte("1e380")) player[this.layer].unlocked = true
         if (player[this.layer].unlocked) {
             player.b.points = player.b.points.add(layers.b.generation().mul(diff))
-            for (let i = 0; i < 4; i++) {
+            for (let i = 0; i < 5; i++) {
                 player.b.cuboids[i] = player.b.cuboids[i].add(layers.b.cuboidGen(i).mul(diff))
             }
         }
@@ -180,8 +211,18 @@ addLayer("b", {
         () => hasMilestone("b",2) && player.b.boxed[3] && player.s.points.lt("1e880") ? ["display-text", `<span style="color:red">You need ${format("1e880")} strings to generate string cuboids.</span>`] : '',
         () => hasMilestone("b",2) && player.b.boxed[3] && player.s.points.gte("1e880") ? ["display-text", `<span style="color:#00ff00">You are generating ${format(layers.b.cuboidGen(3))} string cuboids per second.</span>`] : '',
         () => hasMilestone("b",2) ? ["display-text", `You have <h2 style="color: #2ec766; text-shadow: 0px 0px 10px #2ec766">${format(player.b.cuboids[3])}</h2> string cuboids, boosting the multiplier per chip effect disabled by <h2 style="color: #2ec766; text-shadow: 0px 0px 10px #2ec766">${format(layers.b.cuboidEffect(3))}</h2>x.`] : '',
-        () => hasMilestone("b",2) ? ["display-text", `Each effect disabled multiplies string cuboids gain by ${format(10)}x.`] : '',
+        () => hasMilestone("b",2) ? ["display-text", `Each effect disabled multiplies string cuboids gain by ${format(Decimal.mul(10,layers.b.cuboidEffect(4)))}x.`] : '',
         () => hasMilestone("b",2) ? ["clickables",[10,11]] : '',
+
+        // box cuboids
+        () => hasMilestone("b",4) ? "blank" : '',
+        () => hasMilestone("b",4) ? ["clickables",[12]] : '',
+        () => hasMilestone("b",4) && !player.b.boxed[4] ? ["display-text", `<span style="color:red">You are not eligible to gain box cuboids.</span>`] : '',
+        () => hasMilestone("b",4) && player.b.boxed[4] && player.b.points.lt("1e930") ? ["display-text", `<span style="color:red">You need ${format("1e930")} boxes to generate box cuboids.</span>`] : '',
+        () => hasMilestone("b",4) && player.b.boxed[4] && player.b.points.gte("1e930") ? ["display-text", `<span style="color:#00ff00">You are generating ${format(layers.b.cuboidGen(4))} box cuboids per second.</span>`] : '',
+        () => hasMilestone("b",4) ? ["display-text", `You have <h2 style="color: #e56b00; text-shadow: 0px 0px 10px #e56b00">${format(player.b.cuboids[4])}</h2> box cuboids, boosting the multiplier per string effect disabled by <h2 style="color: #e56b00; text-shadow: 0px 0px 10px #e56b00">${format(layers.b.cuboidEffect(4))}</h2>x.`] : '',
+        () => hasMilestone("b",4) ? ["display-text", `Each effect disabled multiplies box cuboids gain by ${format(1e10)}x and knight and crystal generation by ${format(10)}x.`] : '',
+        () => hasMilestone("b",4) ? ["clickables",[13,14]] : '',
     ],
     buyables: {
         11: {
@@ -194,7 +235,7 @@ addLayer("b", {
                 player[this.layer].points = player[this.layer].points.sub(this.cost())
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
-            effect() {return Decimal.pow(2, getBuyableAmount(this.layer, this.id))},
+            effect() {return player.b.boxToggles[0] ? Decimal.pow(2, getBuyableAmount(this.layer, this.id)) : new Decimal(1)},
         },
         12: {
             title: "<h3>Cuboid Clusters</h3>",
@@ -205,7 +246,7 @@ addLayer("b", {
                 player[this.layer].points = player[this.layer].points.sub(this.cost())
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
-            effect() {return Decimal.pow(3, getBuyableAmount(this.layer, this.id))},
+            effect() {return player.b.boxToggles[1] ? Decimal.pow(3, getBuyableAmount(this.layer, this.id)) : new Decimal(1)},
         },
         13: {
             title: "<h3>Machine Makers</h3>",
@@ -227,7 +268,7 @@ addLayer("b", {
                 player[this.layer].points = player[this.layer].points.sub(this.cost())
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
-            effect() {return Decimal.pow(100, getBuyableAmount(this.layer, this.id))},
+            effect() {return player.b.boxToggles[3] ? Decimal.pow(100, getBuyableAmount(this.layer, this.id)) : new Decimal(1)},
             unlocked() {return hasMilestone("b",2)},
         },
         22: {
@@ -239,7 +280,7 @@ addLayer("b", {
                 player[this.layer].points = player[this.layer].points.sub(this.cost())
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
-            effect() {return Decimal.pow(20, getBuyableAmount(this.layer, this.id))},
+            effect() {return player.b.boxToggles[4] ? Decimal.pow(20, getBuyableAmount(this.layer, this.id)) : new Decimal(1)},
             unlocked() {return hasMilestone("b",2)},
         },
         23: {
@@ -282,6 +323,12 @@ addLayer("b", {
             toggles: [
                 ["b","autoBoxBuyables"],
             ],
+        },
+        4: {
+            requirementDescription() {return `${format("1e1000")} boxes`},
+            effectDescription: "Unlock box cuboids.",
+            done() { return player.b.points.gte("1e1000") },
+            unlocked() { return player.k.unlocked },
         },
     },
     clickables: {
@@ -835,6 +882,161 @@ addLayer("b", {
                 style["width"] = "100px"
                 style["min-height"] = "100px"
                 if (player.b.stringToggles[7]) style["background-color"] = "#2ec766"
+                else style["background-color"] = "#555555"
+                return style
+            },
+        },
+        121: {
+            display() {return `<h2>Reset Boxes</h2>`}, canClick() {return true}, onClick() {layers.b.boxReset(); player.b.boxed[4] = !player.b.boxed[4]},
+            style() {
+                return {"background-color": "#e56b00"}
+            },
+        },
+        122: {
+            display() {return `<h2>Enable All</h2>`}, canClick() {return true},
+            onClick() {
+                if (!player.b.boxed[4]) {
+                    for (let i = 0; i < player.b.boxToggles.length; i++) {
+                        player.b.boxToggles[i] = true
+                    }
+                }
+            },
+            style() {
+                return {"width":"75px","min-height":"75px","background-color":"#e56b00"}
+            },
+        },
+        123: {
+            display() {return `<h2>Disable All</h2>`}, canClick() {return true},
+            onClick() {
+                if (!player.b.boxed[4]) {
+                    for (let i = 0; i < player.b.boxToggles.length; i++) {
+                        player.b.boxToggles[i] = false
+                    }
+                }
+            },
+            style() {
+                return {"width":"75px","min-height":"75px","background-color":"#e56b00"}
+            },
+        },
+        124: {
+            display() {return `<h2>Toggle All</h2>`}, canClick() {return true},
+            onClick() {
+                if (!player.b.boxed[4]) {
+                    for (let i = 0; i < player.b.boxToggles.length; i++) {
+                        player.b.boxToggles[i] = !player.b.boxToggles[i]
+                    }
+                }
+            },
+            style() {
+                return {"width":"75px","min-height":"75px","background-color":"#e56b00"}
+            },
+        },
+        131: {
+            display() {return `<h2>Packing Peanuts</h2>`}, canClick() {return true}, onClick() {if (!player.b.boxed[4]) player.b.boxToggles[0] = !player.b.boxToggles[0]},
+            style() {
+                const style = {}
+                style["width"] = "100px"
+                style["min-height"] = "100px"
+                if (player.b.boxToggles[0]) style["background-color"] = "#e56b00"
+                else style["background-color"] = "#555555"
+                return style
+            },
+        },
+        132: {
+            display() {return `<h2>Cuboid Clusters</h2>`}, canClick() {return true}, onClick() {if (!player.b.boxed[4]) player.b.boxToggles[1] = !player.b.boxToggles[1]},
+            style() {
+                const style = {}
+                style["width"] = "100px"
+                style["min-height"] = "100px"
+                if (player.b.boxToggles[1]) style["background-color"] = "#e56b00"
+                else style["background-color"] = "#555555"
+                return style
+            },
+        },
+        133: {
+            display() {return `<h2>Machine Makers</h2>`}, canClick() {return true}, onClick() {if (!player.b.boxed[4]) player.b.boxToggles[2] = !player.b.boxToggles[2]},
+            style() {
+                const style = {}
+                style["width"] = "100px"
+                style["min-height"] = "100px"
+                if (player.b.boxToggles[2]) style["background-color"] = "#e56b00"
+                else style["background-color"] = "#555555"
+                return style
+            },
+        },
+        134: {
+            display() {return `<h2>Delivery Drivers</h2>`}, canClick() {return true}, onClick() {if (!player.b.boxed[4]) player.b.boxToggles[3] = !player.b.boxToggles[3]},
+            style() {
+                const style = {}
+                style["width"] = "100px"
+                style["min-height"] = "100px"
+                if (player.b.boxToggles[3]) style["background-color"] = "#e56b00"
+                else style["background-color"] = "#555555"
+                return style
+            },
+        },
+        135: {
+            display() {return `<h2 style="font-size:10.5px;">Solid Superstructures</h2>`}, canClick() {return true}, onClick() {if (!player.b.boxed[4]) player.b.boxToggles[4] = !player.b.boxToggles[4]},
+            style() {
+                const style = {}
+                style["width"] = "100px"
+                style["min-height"] = "100px"
+                if (player.b.boxToggles[4]) style["background-color"] = "#e56b00"
+                else style["background-color"] = "#555555"
+                return style
+            },
+        },
+        136: {
+            display() {return `<h2>Gadget Generators</h2>`}, canClick() {return true}, onClick() {if (!player.b.boxed[4]) player.b.boxToggles[5] = !player.b.boxToggles[5]},
+            style() {
+                const style = {}
+                style["width"] = "100px"
+                style["min-height"] = "100px"
+                if (player.b.boxToggles[5]) style["background-color"] = "#e56b00"
+                else style["background-color"] = "#555555"
+                return style
+            },
+        },
+        141: {
+            display() {return `<h2>Matter Cuboids Effect</h2>`}, canClick() {return true}, onClick() {if (!player.b.boxed[4]) player.b.boxToggles[6] = !player.b.boxToggles[6]},
+            style() {
+                const style = {}
+                style["width"] = "100px"
+                style["min-height"] = "100px"
+                if (player.b.boxToggles[6]) style["background-color"] = "#e56b00"
+                else style["background-color"] = "#555555"
+                return style
+            },
+        },
+        142: {
+            display() {return `<h2>Fluid Cuboids Effect</h2>`}, canClick() {return true}, onClick() {if (!player.b.boxed[4]) player.b.boxToggles[7] = !player.b.boxToggles[7]},
+            style() {
+                const style = {}
+                style["width"] = "100px"
+                style["min-height"] = "100px"
+                if (player.b.boxToggles[7]) style["background-color"] = "#e56b00"
+                else style["background-color"] = "#555555"
+                return style
+            },
+        },
+        143: {
+            display() {return `<h2>Chip Cuboids Effect</h2>`}, canClick() {return true}, onClick() {if (!player.b.boxed[4]) player.b.boxToggles[8] = !player.b.boxToggles[8]},
+            style() {
+                const style = {}
+                style["width"] = "100px"
+                style["min-height"] = "100px"
+                if (player.b.boxToggles[8]) style["background-color"] = "#e56b00"
+                else style["background-color"] = "#555555"
+                return style
+            },
+        },
+        144: {
+            display() {return `<h2>String Cuboids Effect</h2>`}, canClick() {return true}, onClick() {if (!player.b.boxed[4]) player.b.boxToggles[9] = !player.b.boxToggles[9]},
+            style() {
+                const style = {}
+                style["width"] = "100px"
+                style["min-height"] = "100px"
+                if (player.b.boxToggles[9]) style["background-color"] = "#e56b00"
                 else style["background-color"] = "#555555"
                 return style
             },
