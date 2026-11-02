@@ -104,6 +104,7 @@ addLayer("b", {
             for (let i = 0; i < player.b.boxToggles.length; i++) {
                 if (player.b.boxToggles[i] === false) falseCount++
             }
+            if (!(player.b.boxed[4] && player.b.points.gte("1e930"))) return new Decimal(1)
             return Decimal.pow(10,falseCount)
         }
         return new Decimal(1)
